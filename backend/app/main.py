@@ -9,7 +9,7 @@ from app.middleware.error_handler import (
 )
 from app.middleware.rate_limiter import RateLimiterMiddleware
 from app.middleware.tenant_context import TenantContextMiddleware
-from app.routers import auth, webhooks
+from app.routers import auth, conversations, webhooks
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,6 +34,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 # Routers
 app.include_router(auth.router)
 app.include_router(webhooks.router)
+app.include_router(conversations.router)
 
 
 @app.get("/health")
