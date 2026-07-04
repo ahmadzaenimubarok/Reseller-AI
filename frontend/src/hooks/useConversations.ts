@@ -1,36 +1,36 @@
 import { useEffect } from "react";
 import api from "@/lib/api";
-import { useInboxStore, type ConversationResponse } from "@/store/inbox";
+import { useInboxStore, type ThreadResponse } from "@/store/inbox";
 
 export function useConversations() {
-  const { filter, setConversations, toggleTakeover } = useInboxStore();
+  const { filter, setThreads, toggleTakeoverInThread } = useInboxStore();
 
   useEffect(() => {
     const params: Record<string, string> = {};
     if (filter === "ai") params.is_human_takeover = "false";
     if (filter === "human") params.is_human_takeover = "true";
 
-    function fetchConversations() {
+    function fetchThreads() {
       api
-        .get<{ data: ConversationResponse[] }>("/conversations", { params })
-        .then((res) => setConversations(res.data.data))
+        .get<{ data: ThreadResponse[] }>("/conversations/threads", { params })
+        .then((res) => setThreads(res.data.data))
         .catch(() => {});
     }
 
-    fetchConversations();
-    const timer = setInterval(fetchConversations, 10_000);
+    fetchThreads();
+    const timer = setInterval(fetchThreads, 10_000);
     return () => clearInterval(timer);
-  }, [filter, setConversations]);
+  }, [filter, setThreads]);
 
-  async function handleToggle(id: string, currentValue: boolean) {
+  async function handleToggle(customerId: string, msgId: string, currentValue: boolean) {
     const newValue = !currentValue;
-    toggleTakeover(id, newValue);
+    toggleTakeoverInThread(customerId, msgId, newValue);
     try {
-      await api.patch(`/conversations/${id}/takeover`, {
+      await api.patch(`/conversations/${msgId}/takeover`, {
         is_human_takeover: newValue,
       });
     } catch {
-      toggleTakeover(id, currentValue);
+      toggleTakeoverInThread(customerId, msgId, currentValue);
     }
   }
 

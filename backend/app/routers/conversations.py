@@ -1,5 +1,6 @@
 import logging
 import uuid
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select
@@ -7,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.models.conversation import Conversation
+from app.models.customer import Customer
 from app.schemas.base import APIResponse
-from app.schemas.conversation import ConversationResponse, TakeoverRequest
+from app.schemas.conversation import ConversationResponse, TakeoverRequest, ThreadMessage, ThreadResponse
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,70 @@ async def list_conversations(
     conversations = result.scalars().all()
 
     return APIResponse(data=[ConversationResponse.model_validate(c) for c in conversations])
+
+
+@router.get("/threads", response_model=APIResponse[list[ThreadResponse]])
+async def list_threads(
+    request: Request,
+    is_human_takeover: bool | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Return conversations grouped by customer (thread view)."""
+    tenant_id: str = request.state.tenant_id
+
+    # Fetch conversations
+    stmt = (
+        select(Conversation)
+        .where(Conversation.tenant_id == uuid.UUID(tenant_id))
+        .order_by(Conversation.created_at.asc())
+    )
+    if is_human_takeover is not None:
+        stmt = stmt.where(Conversation.is_human_takeover == is_human_takeover)
+
+    result = await db.execute(stmt)
+    conversations = result.scalars().all()
+
+    # Collect unique customer IDs
+    customer_ids = list({c.customer_id for c in conversations})
+
+    # Fetch customer data
+    customers: dict[uuid.UUID, Customer] = {}
+    if customer_ids:
+        cust_result = await db.execute(
+            select(Customer).where(
+                Customer.tenant_id == uuid.UUID(tenant_id),
+                Customer.id.in_(customer_ids),
+            )
+        )
+        for cust in cust_result.scalars().all():
+            customers[cust.id] = cust
+
+    # Group conversations by customer
+    grouped: dict[uuid.UUID, list[Conversation]] = defaultdict(list)
+    for conv in conversations:
+        grouped[conv.customer_id].append(conv)
+
+    # Build thread responses — sort threads by most recent message
+    threads: list[ThreadResponse] = []
+    for customer_id, msgs in grouped.items():
+        cust = customers.get(customer_id)
+        last_msg = msgs[-1]
+        threads.append(
+            ThreadResponse(
+                customer_id=customer_id,
+                customer_name=cust.name if cust else None,
+                platform=last_msg.platform,
+                channel_type=last_msg.channel_type,
+                message_count=len(msgs),
+                has_human_takeover=any(m.is_human_takeover for m in msgs),
+                last_message_at=last_msg.created_at,
+                messages=[ThreadMessage.model_validate(m) for m in msgs],
+            )
+        )
+
+    threads.sort(key=lambda t: t.last_message_at, reverse=True)
+    return APIResponse(data=threads[:limit])
 
 
 @router.patch("/{conversation_id}/takeover", response_model=APIResponse[ConversationResponse])

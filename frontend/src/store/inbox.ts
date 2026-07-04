@@ -1,5 +1,28 @@
 import { create } from "zustand";
 
+export interface ThreadMessage {
+  id: string;
+  message_in: string | null;
+  message_out: string | null;
+  intent: string | null;
+  sentiment: string | null;
+  is_human_takeover: boolean;
+  escalation_reason: string | null;
+  created_at: string;
+}
+
+export interface ThreadResponse {
+  customer_id: string;
+  customer_name: string | null;
+  platform: string;
+  channel_type: string;
+  message_count: number;
+  has_human_takeover: boolean;
+  last_message_at: string;
+  messages: ThreadMessage[];
+}
+
+// Legacy — masih dipakai oleh takeover PATCH
 export interface ConversationResponse {
   id: string;
   tenant_id: string;
@@ -18,18 +41,44 @@ export interface ConversationResponse {
 type Filter = "all" | "ai" | "human";
 
 interface InboxStore {
-  conversations: ConversationResponse[];
+  threads: ThreadResponse[];
   filter: Filter;
-  setConversations: (c: ConversationResponse[]) => void;
+  expanded: string | null; // customer_id yang sedang dibuka
+  setThreads: (t: ThreadResponse[]) => void;
   setFilter: (f: Filter) => void;
+  setExpanded: (id: string | null) => void;
+  toggleTakeoverInThread: (customerId: string, msgId: string, value: boolean) => void;
+  // legacy compat
+  conversations: ConversationResponse[];
+  setConversations: (c: ConversationResponse[]) => void;
   toggleTakeover: (id: string, value: boolean) => void;
 }
 
 export const useInboxStore = create<InboxStore>((set) => ({
-  conversations: [],
+  threads: [],
   filter: "all",
-  setConversations: (conversations) => set({ conversations }),
+  expanded: null,
+  setThreads: (threads) => set({ threads }),
   setFilter: (filter) => set({ filter }),
+  setExpanded: (id) =>
+    set((state) => ({ expanded: state.expanded === id ? null : id })),
+  toggleTakeoverInThread: (customerId, msgId, value) =>
+    set((state) => ({
+      threads: state.threads.map((t) =>
+        t.customer_id === customerId
+          ? {
+              ...t,
+              has_human_takeover: value || t.messages.some((m) => m.id !== msgId && m.is_human_takeover),
+              messages: t.messages.map((m) =>
+                m.id === msgId ? { ...m, is_human_takeover: value } : m
+              ),
+            }
+          : t
+      ),
+    })),
+  // legacy
+  conversations: [],
+  setConversations: (conversations) => set({ conversations }),
   toggleTakeover: (id, value) =>
     set((state) => ({
       conversations: state.conversations.map((c) =>

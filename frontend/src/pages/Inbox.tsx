@@ -1,17 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversations } from "@/hooks/useConversations";
-import { useInboxStore } from "@/store/inbox";
+import { useInboxStore, type ThreadMessage } from "@/store/inbox";
 
 const FILTER_LABELS = { all: "Semua", ai: "AI", human: "Human" } as const;
 
@@ -22,6 +14,19 @@ const PLATFORM_ICON: Record<string, string> = {
   whatsapp: "📱",
 };
 
+const INTENT_LABEL: Record<string, string> = {
+  niat_beli: "Niat beli",
+  tanya_info: "Tanya info",
+  komplain: "Komplain",
+  spam: "Spam",
+};
+
+const SENTIMENT_CLASS: Record<string, string> = {
+  positive: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  negative: "bg-red-100 text-red-700 border-red-200",
+  neutral: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
 function truncate(text: string | null, max: number) {
   if (!text) return "—";
   return text.length > max ? text.slice(0, max) + "…" : text;
@@ -29,18 +34,89 @@ function truncate(text: string | null, max: number) {
 
 function relativeTime(iso: string) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return `${diff}d yang lalu`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m yang lalu`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}j yang lalu`;
-  return `${Math.floor(diff / 86400)}h yang lalu`;
+  if (diff < 60) return `${diff}d lalu`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m lalu`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}j lalu`;
+  return `${Math.floor(diff / 86400)}h lalu`;
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function MessageRow({
+  msg,
+  customerId,
+  onToggle,
+}: {
+  msg: ThreadMessage;
+  customerId: string;
+  onToggle: (customerId: string, msgId: string, current: boolean) => void;
+}) {
+  return (
+    <div
+      className={[
+        "flex flex-col gap-1.5 px-4 py-3 border-b border-slate-100 last:border-0",
+        msg.is_human_takeover ? "bg-red-50" : "bg-white",
+      ].join(" ")}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1 flex-1 min-w-0">
+          {/* Pesan masuk */}
+          {msg.message_in && (
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 text-[10px] text-slate-400 w-8 shrink-0 text-right">
+                {formatTime(msg.created_at)}
+              </span>
+              <p className="text-sm text-slate-800">{msg.message_in}</p>
+            </div>
+          )}
+          {/* Balasan AI */}
+          {msg.message_out && (
+            <div className="flex items-start gap-2">
+              <span className="mt-0.5 text-[10px] text-slate-400 w-8 shrink-0 text-right">
+                ↳
+              </span>
+              <p className="text-sm text-slate-500 italic">{msg.message_out}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Tags + toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          {msg.intent && (
+            <Badge className="text-xs bg-slate-100 text-slate-600 border border-slate-200">
+              {INTENT_LABEL[msg.intent] ?? msg.intent}
+            </Badge>
+          )}
+          {msg.sentiment && (
+            <Badge
+              className={`text-xs border ${SENTIMENT_CLASS[msg.sentiment] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}
+            >
+              {msg.sentiment}
+            </Badge>
+          )}
+          <Switch
+            checked={msg.is_human_takeover}
+            onCheckedChange={() => onToggle(customerId, msg.id, msg.is_human_takeover)}
+            aria-label="Toggle human takeover"
+            className={msg.is_human_takeover ? "data-[state=checked]:bg-red-500" : ""}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Inbox() {
   const { logout } = useAuth();
-  const { conversations, filter, setFilter } = useInboxStore();
+  const { threads, filter, setFilter, expanded, setExpanded } = useInboxStore();
   const { handleToggle } = useConversations();
 
-  const escalatedCount = conversations.filter((c) => c.is_human_takeover).length;
+  const escalatedCount = threads.filter((t) => t.has_human_takeover).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -58,10 +134,7 @@ export default function Inbox() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <a
-            href="/leads"
-            className="text-xs text-slate-500 hover:text-slate-900 transition-colors"
-          >
+          <a href="/leads" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
             Leads
           </a>
           <Button
@@ -75,7 +148,8 @@ export default function Inbox() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-6">
+      <main className="mx-auto max-w-4xl px-6 py-6">
+        {/* Filter bar */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex gap-2">
             {(["all", "ai", "human"] as const).map((f) => (
@@ -99,136 +173,91 @@ export default function Inbox() {
               </Button>
             ))}
           </div>
-          <span className="text-xs text-slate-400">
-            {conversations.length} percakapan
-          </span>
+          <span className="text-xs text-slate-400">{threads.length} sesi</span>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50 border-slate-200">
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Platform
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Pesan masuk
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Intent
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Sentiment
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Status
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Waktu
-                </TableHead>
-                <TableHead className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                  Takeover
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {conversations.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="py-16 text-center text-sm text-slate-400"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-2xl">📭</span>
-                      <span>Belum ada percakapan.</span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-              {conversations.map((conv) => (
-                <TableRow
-                  key={conv.id}
-                  className={
-                    conv.is_human_takeover
-                      ? "border-l-4 border-l-red-400 bg-red-50 hover:bg-red-100 border-b border-red-100"
-                      : "border-b border-slate-100 hover:bg-slate-50"
-                  }
+        {/* Thread list */}
+        <div className="flex flex-col gap-2">
+          {threads.length === 0 && (
+            <div className="flex flex-col items-center gap-2 py-16 text-sm text-slate-400">
+              <span className="text-2xl">📭</span>
+              <span>Belum ada percakapan.</span>
+            </div>
+          )}
+
+          {threads.map((thread) => {
+            const isOpen = expanded === thread.customer_id;
+            const displayName = thread.customer_name ?? "Pengguna tanpa nama";
+
+            return (
+              <div
+                key={thread.customer_id}
+                className={[
+                  "rounded-lg border bg-white shadow-sm overflow-hidden",
+                  thread.has_human_takeover
+                    ? "border-red-300"
+                    : "border-slate-200",
+                ].join(" ")}
+              >
+                {/* Thread header — klik untuk expand */}
+                <button
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors text-left"
+                  onClick={() => setExpanded(thread.customer_id)}
                 >
-                  <TableCell className="text-sm text-slate-700">
-                    <span className="flex items-center gap-1.5 capitalize">
-                      <span>{PLATFORM_ICON[conv.platform] ?? "💬"}</span>
-                      {conv.platform}
-                    </span>
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm text-slate-800 font-medium">
-                        {truncate(conv.message_in, 70)}
-                      </span>
-                      {conv.message_out && (
-                        <span className="text-xs text-slate-400 italic">
-                          ↳ {truncate(conv.message_out, 50)}
-                        </span>
-                      )}
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm">
+                      {PLATFORM_ICON[thread.platform] ?? "💬"}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {conv.intent ? (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs bg-slate-100 text-slate-700 border border-slate-200"
-                      >
-                        {conv.intent}
-                      </Badge>
-                    ) : (
-                      <span className="text-slate-300 text-sm">—</span>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900">
+                          {displayName}
+                        </span>
+                        {thread.has_human_takeover && (
+                          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            ⚠ Human
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        {thread.message_count} pesan ·{" "}
+                        {relativeTime(thread.last_message_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {/* Preview pesan terakhir */}
+                    {!isOpen && (
+                      <span className="text-xs text-slate-400 max-w-48 truncate hidden sm:block">
+                        {truncate(
+                          thread.messages[thread.messages.length - 1]?.message_in,
+                          60
+                        )}
+                      </span>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    {conv.sentiment ? (
-                      <Badge
-                        className={
-                          conv.sentiment === "positive"
-                            ? "text-xs bg-green-100 text-green-700 border border-green-200"
-                            : conv.sentiment === "negative"
-                              ? "text-xs bg-red-100 text-red-700 border border-red-200"
-                              : "text-xs bg-slate-100 text-slate-600 border border-slate-200"
-                        }
-                      >
-                        {conv.sentiment}
-                      </Badge>
-                    ) : (
-                      <span className="text-slate-300 text-sm">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={
-                        conv.is_human_takeover
-                          ? "text-xs bg-red-500 text-white font-semibold shadow-sm"
-                          : "text-xs bg-emerald-100 text-emerald-700 border border-emerald-200"
-                      }
-                    >
-                      {conv.is_human_takeover ? "⚠ Human" : "✓ AI"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-slate-400 whitespace-nowrap">
-                    {relativeTime(conv.created_at)}
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={conv.is_human_takeover}
-                      onCheckedChange={() =>
-                        handleToggle(conv.id, conv.is_human_takeover)
-                      }
-                      aria-label="Toggle human takeover"
-                      className={conv.is_human_takeover ? "data-[state=checked]:bg-red-500" : ""}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    <span className="text-slate-400 text-sm select-none">
+                      {isOpen ? "↑" : "↓"}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Messages */}
+                {isOpen && (
+                  <div className="border-t border-slate-100">
+                    {thread.messages.map((msg) => (
+                      <MessageRow
+                        key={msg.id}
+                        msg={msg}
+                        customerId={thread.customer_id}
+                        onToggle={handleToggle}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </main>
     </div>
