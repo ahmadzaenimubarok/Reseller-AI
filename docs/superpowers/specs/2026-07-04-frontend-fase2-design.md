@@ -164,7 +164,31 @@ Sesuai spec SDD §14.6. Status yang ditangani:
 
 ---
 
-## 9. Yang Tidak Dikerjakan di Fase Ini
+## 9. Design Quality — Impeccable
+
+Seluruh frontend wajib lolos **Impeccable** slop detector sebelum commit.
+
+**Setup (sekali):**
+```bash
+/plugin marketplace add pbakaus/impeccable   # install Claude Code plugin
+/impeccable init                              # init + buat DESIGN.md
+```
+
+Buat `PRODUCT.md` manual di root frontend — define: target user (reseller UMKM), brand voice (profesional tapi ringan), anti-references (no gradient-text, no ghost-cards, no over-rounding).
+
+**Workflow per komponen:**
+- Tulis komponen → jalankan `/impeccable detect src/` → fix sebelum commit
+- Gunakan `/impeccable polish` untuk refinement visual jika ada komponen yang kurang rapi
+
+**Rules yang paling relevan untuk project ini (mode: product/dashboard):**
+- No `gradient-text` — tidak ada teks dengan background-clip gradient
+- No `ai-color-palette` — tidak pakai warna default shadcn tanpa kustomisasi
+- No `ghost-cards` — card harus punya visual weight yang jelas
+- No `over-rounding` — tidak semua element pakai `rounded-full`
+
+---
+
+## 10. Yang Tidak Dikerjakan di Fase Ini
 
 - Halaman selain Login + Inbox
 - WebSocket (Fase 4)
