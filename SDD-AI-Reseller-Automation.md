@@ -573,9 +573,16 @@ CREATE POLICY tenant_isolation ON conversations
 
 Untuk data sensitif (token OAuth, WA credentials), disimpan terenkripsi di tabel `tenant_credentials` menggunakan AES-256 dengan key per tenant.
 
-### 4.2 Credential Sosmed Per Tenant
+### 4.2 Credential Sosmed Per Tenant — Shared App Model
 
-Setiap tenant menghubungkan akun sosmed mereka sendiri melalui alur OAuth di dashboard. Token disimpan ter-enkripsi dan digunakan eksklusif untuk tenant tersebut. Sistem tidak pernah mencampur token antar tenant.
+Platform menggunakan **satu Facebook App milik developer** (Shared App Model) yang sudah melewati Meta App Review. Setiap tenant menghubungkan **Facebook Page milik mereka sendiri** melalui OAuth — bukan membuat Meta App sendiri.
+
+Keuntungan model ini:
+- Tenant tidak perlu mendaftarkan Meta App sendiri atau melewati App Review
+- Developer mengontrol satu App ID untuk semua tenant
+- Setiap tenant tetap terisolasi — masing-masing punya `page_access_token` sendiri yang disimpan terenkripsi di `tenant_credentials`
+
+Token disimpan ter-enkripsi (AES-256) dan digunakan eksklusif untuk tenant tersebut. Sistem tidak pernah mencampur token antar tenant.
 
 ### 4.3 AI Context Per Tenant
 
@@ -583,6 +590,56 @@ Setiap tenant memiliki:
 - **Vector namespace** tersendiri di pgvector — diimplementasikan via filter `tenant_id` di tabel `product_embeddings` (lihat Section 7). pgvector tidak punya namespace native; isolasi dijamin oleh RULE-03 + RLS.
 - **System prompt** yang bisa dikustomisasi (nama toko, tone bahasa, kebijakan toko).
 - **Konfigurasi AI** tersendiri: threshold intent, auto-approve toggle, jam posting, dll.
+
+### 4.4 Alur OAuth — Tenant Menghubungkan Facebook Page
+
+Alur ini akan diimplementasikan di Fase 3 (Settings → Connect sosmed). Berikut desain targetnya:
+
+```
+1. Tenant klik "Hubungkan Facebook Page" di halaman Settings
+        ↓
+2. Backend generate OAuth URL:
+   https://www.facebook.com/v19.0/dialog/oauth
+     ?client_id={META_APP_ID}
+     &redirect_uri={META_REDIRECT_URI}
+     &scope=pages_manage_posts,pages_read_engagement,pages_messaging
+     &state={tenant_id}   ← anti-CSRF, verifikasi saat callback
+        ↓
+3. Tenant login ke Facebook & grant izin
+        ↓
+4. Meta redirect ke: GET /auth/facebook/callback?code=...&state={tenant_id}
+        ↓
+5. Backend tukar `code` → short-lived user token
+   (POST ke https://graph.facebook.com/v19.0/oauth/access_token)
+        ↓
+6. Backend tukar user token → long-lived page access token per Page:
+   GET /me/accounts?access_token={user_token}
+   → array Facebook Pages yang dikelola tenant
+   → ambil page_access_token per Page (long-lived by default)
+        ↓
+7. Simpan terenkripsi di tenant_credentials:
+   {
+     tenant_id,
+     platform: "facebook",
+     access_token_encrypted: encrypt(page_access_token),
+     metadata: { page_id, page_name }  ← simpan di kolom JSONB
+   }
+        ↓
+8. FeatureStatus "facebook_reply" → ACTIVE
+   (check_feature_status() menemukan credential valid)
+```
+
+**Env vars yang dibutuhkan (tambah ke .env.example):**
+```bash
+META_REDIRECT_URI=https://reseller.jawakoentji.my.id/auth/facebook/callback
+META_OAUTH_SCOPES=pages_manage_posts,pages_read_engagement,pages_messaging
+```
+
+**Catatan implementasi:**
+- `state` parameter di OAuth URL harus divalidasi saat callback untuk mencegah CSRF
+- Jika tenant punya lebih dari satu Page, tampilkan daftar Pages untuk dipilih
+- Long-lived page token tidak expire secara otomatis kecuali user cabut izin atau password Facebook berubah
+- Simpan `expires_at = None` untuk long-lived page token (tidak ada expiry)
 
 ---
 
@@ -1578,5 +1635,7 @@ system_logs (
 *Versi 2.2 — Penambahan: AI Agent Autonomy Design (Bagian 15) dan Graceful Feature Degradation (Bagian 16).*
 
 *Versi 2.4 — Klarifikasi & penambahan: (1) RLS strategy diperbarui ke two-layer defense dengan `SET LOCAL` + catatan keamanan pooling (Bagian 4.1); (2) Catatan implementasi vector namespace via `tenant_id` filter (Bagian 4.3); (3) Tabel `users` dengan role `tenant_user` / `super_admin` (Bagian 7); (4) Tabel `product_embeddings` untuk pgvector RAG per tenant (Bagian 7); (5) Tabel `system_logs` untuk internal audit trail (Bagian 7).*
+
+*Versi 2.6 — Landing page & public pages: Tambah Section 4.2 (Shared App Model), 4.3 (AI Context Per Tenant), 4.4 (Alur OAuth Facebook Page per tenant). Env vars baru: `META_REDIRECT_URI`, `META_OAUTH_SCOPES`. Domain sementara: `reseller.jawakoentji.my.id`.*
 
 *Versi 2.5 — Fase 2 decisions: (1) Engagement Engine Fase 2 scope dipersempit ke Facebook + Messenger saja (Bagian 5.3); (2) Human takeover mechanic ditambahkan: kolom `is_human_takeover` di `conversations`, toggle via API, eskalasi otomatis, polling 10 detik di frontend (Bagian 5.3); (3) Topik eskalasi dikonfigurasi per tenant via `ai_config.escalation_topics` (Bagian 5.3 + skema tenants); (4) AI provider abstraksi: OpenRouter untuk dev/testing, OpenAI untuk production — swap via env vars tanpa ubah kode (Bagian 14.1, 14.3); (5) Skema `conversations` dan `customers` dilengkapi (Bagian 7); (6) Env vars baru: `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `AI_MODEL_FAST`, `AI_MODEL_QUALITY` (Bagian 0.6).*

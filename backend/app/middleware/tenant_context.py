@@ -10,7 +10,7 @@ from app.core.security import decode_token
 logger = logging.getLogger(__name__)
 
 PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
-AUTH_PATHS = {"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh"}
+AUTH_PATHS = {"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout", "/api/v1/auth/me"}
 WEBHOOK_PATH_PREFIX = "/webhooks"
 
 
@@ -40,6 +40,11 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
     def _extract_token(self, request: Request) -> str | None:
+        # Cookie sebagai primary (browser)
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            return cookie_token
+        # Header sebagai fallback (Postman/testing)
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
             return auth_header[7:]
