@@ -33,7 +33,6 @@ async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]
             if tenant_id:
                 # SET LOCAL: scoped ke transaction ini — aman dengan connection pooling
                 await session.execute(
-                    text("SET LOCAL app.current_tenant_id = :tid"),
-                    {"tid": str(tenant_id)},
+                    text(f"SET LOCAL app.current_tenant_id = '{str(tenant_id)}'")
                 )
             yield session

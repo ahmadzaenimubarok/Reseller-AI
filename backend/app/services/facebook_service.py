@@ -7,14 +7,12 @@ logger = logging.getLogger(__name__)
 GRAPH_API_BASE = "https://graph.facebook.com/v21.0"
 
 
-async def send_comment_reply(
-    page_token: str, comment_id: str, message: str
-) -> bool:
+def send_comment_reply(page_token: str, comment_id: str, message: str) -> bool:
     """Balas komentar Facebook via Graph API. Kembalikan True jika berhasil."""
     url = f"{GRAPH_API_BASE}/{comment_id}/comments"
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 params={"access_token": page_token},
                 json={"message": message},
@@ -27,14 +25,12 @@ async def send_comment_reply(
         return False
 
 
-async def send_messenger_reply(
-    page_token: str, recipient_id: str, message: str
-) -> bool:
+def send_messenger_reply(page_token: str, recipient_id: str, message: str) -> bool:
     """Kirim pesan Messenger via Graph API. Kembalikan True jika berhasil."""
     url = f"{GRAPH_API_BASE}/me/messages"
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 params={"access_token": page_token},
                 json={

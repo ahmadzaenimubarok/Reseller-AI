@@ -47,7 +47,6 @@ async def facebook_receive(
     settings = get_settings()
     body = await request.body()
 
-    # Verifikasi signature jika META_APP_SECRET dikonfigurasi
     if settings.META_APP_SECRET:
         signature = request.headers.get("X-Hub-Signature-256")
         if not _verify_fb_signature(body, signature, settings.META_APP_SECRET):

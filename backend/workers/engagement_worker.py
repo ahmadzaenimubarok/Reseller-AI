@@ -23,23 +23,35 @@ def process_facebook_event(self, tenant_id: str, event: dict) -> None:
     channel_type = event.get("channel_type", "comment")
 
     async def _run() -> None:
-        from app.core.database import AsyncSessionLocal
+        from sqlalchemy.pool import NullPool
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+        from app.core.config import get_settings
         from app.services.engagement_service import (
             process_facebook_comment,
             process_messenger_message,
         )
 
-        async with AsyncSessionLocal() as session:
-            async with session.begin():
-                if channel_type == "comment":
-                    await process_facebook_comment(tenant_id, event, session)
-                elif channel_type == "dm":
-                    await process_messenger_message(tenant_id, event, session)
-                else:
-                    logger.warning(
-                        "Unknown channel_type",
-                        extra={"channel_type": channel_type, "tenant_id": tenant_id},
-                    )
+        import app.models.user  # noqa: F401 — register User mapper sebelum Tenant dikonfigurasi
+
+        # NullPool: hindari reuse connection pool antar fork (asyncio loop berbeda)
+        _settings = get_settings()
+        _engine = create_async_engine(_settings.DATABASE_URL, poolclass=NullPool)
+        _Session = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
+
+        try:
+            async with _Session() as session:
+                async with session.begin():
+                    if channel_type == "comment":
+                        await process_facebook_comment(tenant_id, event, session)
+                    elif channel_type == "dm":
+                        await process_messenger_message(tenant_id, event, session)
+                    else:
+                        logger.warning(
+                            "Unknown channel_type",
+                            extra={"channel_type": channel_type, "tenant_id": tenant_id},
+                        )
+        finally:
+            await _engine.dispose()
 
     try:
         asyncio.run(_run())

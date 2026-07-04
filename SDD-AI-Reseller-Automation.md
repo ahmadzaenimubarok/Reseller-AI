@@ -1,8 +1,8 @@
 # Software Design Document (SDD)
 ## AI-Powered SaaS Dashboard — Reseller Automation Platform
 
-**Versi:** 2.5
-**Tanggal:** 3 Juli 2026
+**Versi:** 2.6
+**Tanggal:** 4 Juli 2026
 **Status:** Draft
 
 ---
@@ -33,20 +33,27 @@ AI provider  : OpenAI API (GPT-4o, GPT-4o-mini, DALL·E 3, text-embedding-3-smal
 Kerjakan dalam urutan ini. Jangan melompat ke fase berikutnya sebelum fase sekarang selesai dan tested.
 
 ```
-FASE 1 — FONDASI
-  [ ] Setup project structure sesuai folder tree di Bagian 14.2
-  [ ] Konfigurasi PostgreSQL + pgvector + Alembic migration awal
-  [ ] Konfigurasi Redis + Celery app
-  [ ] Implementasi core/feature_flags.py (WAJIB ada sebelum engine apapun)
-  [ ] Implementasi middleware/error_handler.py (WAJIB ada sebelum router apapun)
-  [ ] Implementasi middleware/tenant_context.py
-  [ ] Auth: register, login, JWT issue & refresh
-  [ ] Tenant provisioning: buat workspace saat register
+FASE 1 — FONDASI ✅ SELESAI (2026-07-03)
+  [x] Setup project structure sesuai folder tree di Bagian 14.2
+  [x] Konfigurasi PostgreSQL + pgvector + Alembic migration awal
+  [x] Konfigurasi Redis + Celery app
+  [x] Implementasi core/feature_flags.py (WAJIB ada sebelum engine apapun)
+  [x] Implementasi middleware/error_handler.py (WAJIB ada sebelum router apapun)
+  [x] Implementasi middleware/tenant_context.py
+  [x] Auth: register, login, JWT issue & refresh
+  [x] Tenant provisioning: buat workspace saat register
 
-FASE 2 — ENGINE DASAR
-  [ ] Engagement Engine: webhook receiver + intent classifier + auto-reply
-  [ ] FeatureGate component di frontend
-  [ ] Dashboard: Inbox page (percakapan + human override)
+FASE 2 — ENGINE DASAR ✅ SELESAI (2026-07-04)
+  [x] Engagement Engine: webhook receiver + intent classifier + auto-reply
+  [x] FeatureGate component di frontend
+  [x] Dashboard: Inbox page (percakapan + human override)
+  Catatan:
+  - Messenger DM reply: end-to-end verified ✅
+  - Comment reply: kode siap, webhook trigger menunggu Meta App Review (Live mode)
+  - Eskalasi human takeover: berfungsi via intent komplain + sentiment negatif
+  - Token FB disimpan terenkripsi di tabel tenant_credentials (Fernet)
+  - Celery worker wajib dijalankan dengan -Q celery,engagement,discovery,content,conversion
+  - facebook_service.py menggunakan httpx.Client (sync) bukan AsyncClient — menghindari event loop conflict di Celery fork worker
 
 FASE 3 — CONTENT
   [ ] Content & Publishing Engine: caption gen + image gen + scheduler

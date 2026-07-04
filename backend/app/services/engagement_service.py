@@ -185,7 +185,7 @@ async def process_facebook_comment(
 
     tone = tenant.ai_config.get("tone", "casual")
     reply = await generate_reply(message, product_context, tone)
-    sent = await send_comment_reply(page_token, comment_id, reply)
+    sent = send_comment_reply(page_token, comment_id, reply)
 
     conv = Conversation(
         tenant_id=uuid.UUID(tenant_id),
@@ -276,7 +276,7 @@ async def process_messenger_message(
 
     tone = tenant.ai_config.get("tone", "casual")
     reply = await generate_reply(message, product_context, tone)
-    sent = await send_messenger_reply(page_token, sender_id, reply)
+    sent = send_messenger_reply(page_token, sender_id, reply)
 
     conv = Conversation(
         tenant_id=uuid.UUID(tenant_id),
