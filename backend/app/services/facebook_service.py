@@ -11,8 +11,8 @@ async def send_comment_reply(page_token: str, comment_id: str, message: str) -> 
     """Balas komentar Facebook via Graph API. Kembalikan True jika berhasil."""
     url = f"{GRAPH_API_BASE}/{comment_id}/comments"
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 params={"access_token": page_token},
                 json={"message": message},
@@ -29,8 +29,8 @@ async def get_messenger_user_name(page_token: str, psid: str) -> str | None:
     """Fetch nama user Messenger via Graph API pakai PSID. Return None jika gagal."""
     url = f"{GRAPH_API_BASE}/{psid}"
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(
                 url,
                 params={"access_token": page_token, "fields": "name"},
             )
@@ -45,8 +45,8 @@ async def send_messenger_reply(page_token: str, recipient_id: str, message: str)
     """Kirim pesan Messenger via Graph API. Kembalikan True jika berhasil."""
     url = f"{GRAPH_API_BASE}/me/messages"
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
                 url,
                 params={"access_token": page_token},
                 json={
