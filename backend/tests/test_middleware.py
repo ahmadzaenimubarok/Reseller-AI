@@ -58,6 +58,17 @@ def test_protected_with_invalid_token_returns_401(client):
     assert res.status_code == 401
 
 
+def test_protected_with_cookie_token_returns_200(client):
+    token = create_access_token(
+        {"sub": "user-123", "tenant_id": "tenant-abc", "role": "tenant_user"}
+    )
+    client.cookies.set("access_token", token)
+    res = client.get("/api/v1/protected")
+    client.cookies.clear()
+    assert res.status_code == 200
+    assert res.json()["data"]["tenant_id"] == "tenant-abc"
+
+
 def test_exception_handler_returns_clean_error(client):
     token = create_access_token({"sub": "u", "tenant_id": "t", "role": "tenant_user"})
     res = client.get("/api/v1/crash", headers={"Authorization": f"Bearer {token}"})

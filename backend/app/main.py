@@ -2,6 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.middleware.error_handler import (
     global_exception_handler,
@@ -23,9 +24,16 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Middleware (urutan: luar ke dalam)
+# Middleware (urutan: luar ke dalam — Starlette reverse-order, ditambah terakhir = dieksekusi pertama)
 app.add_middleware(RateLimiterMiddleware)
 app.add_middleware(TenantContextMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "https://dashboard.jawakoentji.my.id"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Exception handlers
 app.add_exception_handler(Exception, global_exception_handler)
