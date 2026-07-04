@@ -5,6 +5,8 @@ export interface LeadResponse {
   id: string;
   tenant_id: string;
   customer_id: string;
+  customer_name: string | null;
+  customer_platform: string | null;
   tier: "hot" | "warm" | "cold";
   tier_reason: string | null;
   interaction_count: number;

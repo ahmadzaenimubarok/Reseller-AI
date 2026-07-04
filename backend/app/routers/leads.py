@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
+from app.models.customer import Customer
 from app.models.lead import Lead
 from app.schemas.base import APIResponse
 from app.schemas.lead import LeadResponse
@@ -14,6 +15,30 @@ from app.services.lead_service import archive_lead, resolve_lead
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/leads", tags=["leads"])
+
+
+async def _enrich_leads(leads: list[Lead], tenant_id: str, db: AsyncSession) -> list[LeadResponse]:
+    """Join customer name & platform ke lead response."""
+    customer_ids = [l.customer_id for l in leads]
+    customers: dict[uuid.UUID, Customer] = {}
+    if customer_ids:
+        result = await db.execute(
+            select(Customer).where(
+                Customer.tenant_id == uuid.UUID(tenant_id),
+                Customer.id.in_(customer_ids),
+            )
+        )
+        for c in result.scalars().all():
+            customers[c.id] = c
+
+    out = []
+    for lead in leads:
+        cust = customers.get(lead.customer_id)
+        data = LeadResponse.model_validate(lead)
+        data.customer_name = cust.name if cust else None
+        data.customer_platform = cust.platform if cust else None
+        out.append(data)
+    return out
 
 
 @router.get("", response_model=APIResponse[list[LeadResponse]])
@@ -38,9 +63,9 @@ async def list_leads(
         stmt = stmt.where(Lead.status == status)
 
     result = await db.execute(stmt)
-    leads = result.scalars().all()
+    leads = list(result.scalars().all())
 
-    return APIResponse(data=[LeadResponse.model_validate(l) for l in leads])
+    return APIResponse(data=await _enrich_leads(leads, tenant_id, db))
 
 
 @router.patch("/{lead_id}/archive", response_model=APIResponse[LeadResponse])
@@ -56,7 +81,8 @@ async def archive_lead_endpoint(
         raise HTTPException(status_code=404, detail="Lead tidak ditemukan.")
 
     logger.info("Lead archived via API", extra={"lead_id": str(lead_id), "tenant_id": tenant_id})
-    return APIResponse(data=LeadResponse.model_validate(lead))
+    enriched = await _enrich_leads([lead], tenant_id, db)
+    return APIResponse(data=enriched[0])
 
 
 @router.patch("/{lead_id}/resolve", response_model=APIResponse[LeadResponse])
@@ -72,4 +98,5 @@ async def resolve_lead_endpoint(
         raise HTTPException(status_code=404, detail="Lead tidak ditemukan.")
 
     logger.info("Lead resolved via API", extra={"lead_id": str(lead_id), "tenant_id": tenant_id})
-    return APIResponse(data=LeadResponse.model_validate(lead))
+    enriched = await _enrich_leads([lead], tenant_id, db)
+    return APIResponse(data=enriched[0])
