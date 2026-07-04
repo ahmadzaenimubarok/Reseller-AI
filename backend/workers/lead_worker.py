@@ -27,19 +27,26 @@ def classify_lead(self, tenant_id: str, customer_id: str) -> None:
         from app.core.feature_flags import FeatureStatus, check_feature_status
         from app.services.lead_service import upsert_lead
 
+        import app.models.user  # noqa: F401 — register User mapper
+
         _settings = get_settings()
         _engine = create_async_engine(_settings.DATABASE_URL, poolclass=NullPool)
         _Session = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
 
         try:
+            # check_feature_status pakai session sendiri (auto-begin internal)
             async with _Session() as session:
                 status = await check_feature_status(tenant_id, "lead_classification", session)
-                if status != FeatureStatus.ACTIVE:
-                    logger.info(
-                        "lead_classification skipped",
-                        extra={"tenant_id": tenant_id, "status": status.value},
-                    )
-                    return
+
+            if status != FeatureStatus.ACTIVE:
+                logger.info(
+                    "lead_classification skipped",
+                    extra={"tenant_id": tenant_id, "status": status.value},
+                )
+                return
+
+            # upsert_lead pakai session baru dengan explicit transaction
+            async with _Session() as session:
                 async with session.begin():
                     await upsert_lead(tenant_id, customer_id, session)
         finally:
