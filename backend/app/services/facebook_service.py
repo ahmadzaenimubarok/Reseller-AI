@@ -25,6 +25,22 @@ async def send_comment_reply(page_token: str, comment_id: str, message: str) -> 
         return False
 
 
+async def get_messenger_user_name(page_token: str, psid: str) -> str | None:
+    """Fetch nama user Messenger via Graph API pakai PSID. Return None jika gagal."""
+    url = f"{GRAPH_API_BASE}/{psid}"
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                url,
+                params={"access_token": page_token, "fields": "name"},
+            )
+            if response.is_success:
+                return response.json().get("name")
+    except Exception:
+        logger.warning("get_messenger_user_name failed", extra={"psid": psid})
+    return None
+
+
 async def send_messenger_reply(page_token: str, recipient_id: str, message: str) -> bool:
     """Kirim pesan Messenger via Graph API. Kembalikan True jika berhasil."""
     url = f"{GRAPH_API_BASE}/me/messages"

@@ -11,7 +11,7 @@ from app.models.customer import Customer
 from app.models.system_log import SystemLog
 from app.models.tenant import Tenant
 from app.models.tenant_credential import TenantCredential
-from app.services.facebook_service import send_comment_reply, send_messenger_reply
+from app.services.facebook_service import get_messenger_user_name, send_comment_reply, send_messenger_reply
 from app.services.openai_service import IntentResult, classify_intent, generate_reply
 from app.services.rag_service import get_product_context
 
@@ -61,6 +61,8 @@ async def _get_or_create_customer(
         )
         db.add(customer)
         await db.flush()
+    elif name and not customer.name:
+        customer.name = name
     return customer
 
 
@@ -240,7 +242,9 @@ async def process_messenger_message(
     if existing is not None:
         return None
 
-    customer = await _get_or_create_customer(tenant_id, sender_id, "messenger", None, db)
+    page_token = decrypt_credential(credential.access_token_encrypted)
+    sender_name = await get_messenger_user_name(page_token, sender_id)
+    customer = await _get_or_create_customer(tenant_id, sender_id, "messenger", sender_name, db)
 
     product_context = await get_product_context(tenant_id, message, db)
     tenant_context = f"Nama toko: {tenant.name}\n{product_context}"
@@ -249,8 +253,6 @@ async def process_messenger_message(
 
     escalation_topics: list[str] = tenant.ai_config.get("escalation_topics", [])
     should_escalate, escalation_reason = _should_escalate(message, intent_result, escalation_topics)
-
-    page_token = decrypt_credential(credential.access_token_encrypted)
 
     if should_escalate:
         conv = Conversation(
