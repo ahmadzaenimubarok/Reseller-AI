@@ -34,7 +34,10 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Card className="w-full max-w-sm border border-slate-200 shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-slate-900">
+          <div className="flex flex-col items-center gap-3 mb-2">
+            <img src="/logo.jpeg" alt="Reseller AI" className="h-12 w-12 rounded-full object-cover" />
+          </div>
+          <CardTitle className="text-lg font-semibold text-slate-900 text-center">
             Masuk ke Dashboard
           </CardTitle>
         </CardHeader>

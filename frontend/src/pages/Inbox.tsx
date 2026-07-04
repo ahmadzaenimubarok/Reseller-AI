@@ -46,6 +46,7 @@ export default function Inbox() {
     <div className="min-h-screen bg-slate-50">
       <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 shadow-sm">
         <div className="flex items-center gap-3">
+          <img src="/logo.jpeg" alt="Reseller AI" className="h-7 w-7 rounded-full object-cover" />
           <span className="text-sm font-semibold text-slate-900">
             Reseller AI — Inbox
           </span>
