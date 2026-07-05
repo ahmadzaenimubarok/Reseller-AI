@@ -30,6 +30,5 @@ async def save_facebook_token(
     db: AsyncSession = Depends(get_db_session),
 ):
     tenant_id: str = request.state.tenant_id
-    async with db.begin():
-        await save_fb_token(tenant_id, body.page_token, body.page_id, db)
+    await save_fb_token(tenant_id, body.page_token, body.page_id, db)
     return APIResponse(data=None, message="Facebook Page token berhasil disimpan.")

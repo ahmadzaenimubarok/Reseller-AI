@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useInboxStore } from "@/store/inbox";
 
 const NAV_ITEMS = [
   {

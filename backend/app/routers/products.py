@@ -36,8 +36,7 @@ async def create_product_endpoint(
     db: AsyncSession = Depends(get_db_session),
 ):
     tenant_id: str = request.state.tenant_id
-    async with db.begin():
-        product = await create_product(tenant_id, body, db)
+    product = await create_product(tenant_id, body, db)
     return APIResponse(data=ProductResponse.model_validate(product), message="Produk berhasil ditambahkan.")
 
 
@@ -49,8 +48,7 @@ async def update_product_endpoint(
     db: AsyncSession = Depends(get_db_session),
 ):
     tenant_id: str = request.state.tenant_id
-    async with db.begin():
-        product = await update_product(product_id, tenant_id, body, db)
+    product = await update_product(product_id, tenant_id, body, db)
     if product is None:
         raise HTTPException(status_code=404, detail="Produk tidak ditemukan.")
     return APIResponse(data=ProductResponse.model_validate(product))
@@ -63,8 +61,7 @@ async def delete_product_endpoint(
     db: AsyncSession = Depends(get_db_session),
 ):
     tenant_id: str = request.state.tenant_id
-    async with db.begin():
-        deleted = await delete_product(product_id, tenant_id, db)
+    deleted = await delete_product(product_id, tenant_id, db)
     if not deleted:
         raise HTTPException(status_code=404, detail="Produk tidak ditemukan.")
     return APIResponse(data=None, message="Produk berhasil dihapus.")

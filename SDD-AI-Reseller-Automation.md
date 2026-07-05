@@ -60,9 +60,25 @@ FASE 3 — LEAD INTELLIGENCE
   [ ] Dashboard: Leads page (daftar lead + status klasifikasi + filter)
 
 FASE 4 — SAAS LAYER
-  [ ] Subscription & billing (Midtrans/Stripe webhook)
-  [ ] Usage metering + quota enforcement
-  [ ] Super Admin panel
+  FASE 4a — Onboarding Tenant
+    [ ] Product management: CRUD /products per tenant
+    [ ] Settings page: connect Facebook Page via UI (simpan token)
+    [ ] Onboarding flow: registrasi → connect FB → setup produk → aktifkan AI
+
+  FASE 4b — Subscription & Billing
+    [ ] Plan model (free/starter/pro/enterprise) + feature gate per plan
+    [ ] Midtrans webhook: konfirmasi payment → upgrade plan
+    [ ] Invoice & notifikasi email (Resend)
+
+  FASE 4c — Usage Metering & Quota
+    [ ] Hitung AI calls + conversations per tenant per billing period
+    [ ] Quota enforcement: block/degrade kalau habis
+    [ ] Usage indicator di dashboard tenant
+
+  FASE 4d — Super Admin & Observability
+    [ ] Super Admin panel: list tenant, usage, health sistem
+    [ ] WebSocket untuk Inbox (ganti polling 10 detik)
+    [ ] Monitoring dasar (error rate, queue depth)
 ```
 
 ---
