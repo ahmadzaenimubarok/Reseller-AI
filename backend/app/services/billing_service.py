@@ -106,7 +106,7 @@ async def _modify_subscription(tenant: Tenant, new_plan: str, db: AsyncSession) 
     settings = get_settings()
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    sub = stripe.Subscription.retrieve(tenant.stripe_subscription_id)
+    sub = stripe.Subscription.retrieve(tenant.stripe_subscription_id).to_dict()
     item_id = sub["items"]["data"][0]["id"]
 
     # Batalkan pending downgrade — kembalikan ke plan aktif saat ini
