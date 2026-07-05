@@ -116,10 +116,10 @@ export default function Billing() {
             const isCurrent = status?.plan === plan.key;
             const isPending = status?.pending_plan === plan.key;
             const hasPending = !!status?.pending_plan;
-            // Plan aktif bisa diklik untuk batalkan pending downgrade
-            const isCurrentCancelable = isCurrent && hasPending && !isFree;
             const isFree = plan.key === "free";
             const isEnterprise = plan.key === "enterprise";
+            // Plan aktif bisa diklik untuk batalkan pending downgrade
+            const isCurrentCancelable = isCurrent && hasPending && !isFree;
             const canAct = (!isCurrent || isCurrentCancelable) && !isFree && !isEnterprise && !isPending;
             const isDisabled = (isCurrent && !isCurrentCancelable) || isPending || isFree || isEnterprise || redirecting;
             return (
