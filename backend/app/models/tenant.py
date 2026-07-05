@@ -17,6 +17,7 @@ class Tenant(Base, TimestampMixin):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     plan: Mapped[str] = mapped_column(String(50), default="free", nullable=False)
     plan_expires_at: Mapped[str | None] = mapped_column(nullable=True)
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     ai_config: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="tenant")
