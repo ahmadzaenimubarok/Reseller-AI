@@ -12,9 +12,9 @@ from app.models.tenant import Tenant
 logger = logging.getLogger(__name__)
 
 PLAN_PRICES: dict[str, str] = {
-    "starter": "price_REPLACE_WITH_STRIPE_PRICE_ID_STARTER",
-    "pro": "price_REPLACE_WITH_STRIPE_PRICE_ID_PRO",
-    "enterprise": "price_REPLACE_WITH_STRIPE_PRICE_ID_ENTERPRISE",
+    "starter": "price_1TppVcQ6INtHNgjR9stsKKb5",
+    "pro": "price_1TppVdQ6INtHNgjRFrNQ7uyx",
+    "enterprise": "price_1TppVeQ6INtHNgjRooqFMSvr",
 }
 
 PLAN_DURATION_DAYS: dict[str, int] = {
