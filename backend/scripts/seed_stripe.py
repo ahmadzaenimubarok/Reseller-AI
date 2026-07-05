@@ -26,7 +26,7 @@ PLANS = [
         "key": "starter",
         "name": "Remindly AI — Starter",
         "description": "Instagram & TikTok reply, content publish, product discovery",
-        "amount": 9900,       # dalam sen IDR (Rp 99.000)
+        "amount": 99000,      # IDR zero-decimal: nilai penuh tanpa sen
         "currency": "idr",
         "interval": "month",
     },
@@ -34,7 +34,7 @@ PLANS = [
         "key": "pro",
         "name": "Remindly AI — Pro",
         "description": "Semua fitur Starter + Facebook & WhatsApp, lead classification, analytics",
-        "amount": 29900,      # Rp 299.000
+        "amount": 299000,     # Rp 299.000
         "currency": "idr",
         "interval": "month",
     },
@@ -42,7 +42,7 @@ PLANS = [
         "key": "enterprise",
         "name": "Remindly AI — Enterprise",
         "description": "Unlimited channels, dedicated support, custom SLA",
-        "amount": 299000,     # Rp 2.999.000
+        "amount": 2999000,    # Rp 2.999.000
         "currency": "idr",
         "interval": "year",
     },
