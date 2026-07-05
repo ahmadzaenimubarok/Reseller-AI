@@ -106,8 +106,11 @@ async def _modify_subscription(tenant: Tenant, new_plan: str, db: AsyncSession) 
     settings = get_settings()
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    sub = stripe.Subscription.retrieve(tenant.stripe_subscription_id).to_dict()
-    item_id = sub["items"]["data"][0]["id"]
+    sub_obj = stripe.Subscription.retrieve(tenant.stripe_subscription_id)
+    sub_dict = sub_obj.to_dict()
+    item_id = sub_dict["items"]["data"][0]["id"]
+    # current_period_end kosong di billing_mode=flexible — fallback ke billing_cycle_anchor + 1 bulan
+    period_end_ts = sub_dict.get("current_period_end") or sub_dict.get("billing_cycle_anchor")
 
     # Batalkan pending downgrade — kembalikan ke plan aktif saat ini
     canceling_pending = tenant.pending_plan and new_plan == tenant.plan
@@ -140,7 +143,8 @@ async def _modify_subscription(tenant: Tenant, new_plan: str, db: AsyncSession) 
 
     else:
         # Downgrade baru: jadwalkan di akhir periode berjalan
-        period_end = sub["current_period_end"]
+        if not period_end_ts:
+            raise ValueError("Tidak dapat membaca periode berlangganan dari Stripe")
         stripe.Subscription.modify(
             tenant.stripe_subscription_id,
             items=[{"id": item_id, "price": PLAN_PRICES[new_plan]}],
@@ -148,7 +152,7 @@ async def _modify_subscription(tenant: Tenant, new_plan: str, db: AsyncSession) 
             billing_cycle_anchor="unchanged",
             metadata={"tenant_id": str(tenant.id), "plan": new_plan},
         )
-        period_end_dt = datetime.fromtimestamp(period_end, tz=timezone.utc)
+        period_end_dt = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
         tenant.pending_plan = new_plan
         tenant.pending_plan_date = period_end_dt.isoformat()
         logger.info(
