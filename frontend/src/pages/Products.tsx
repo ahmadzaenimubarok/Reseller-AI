@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProducts, type CreateProductPayload } from "@/hooks/useProducts";
+import AppLayout from "@/components/AppLayout";
 
 function formatPrice(price: string | null) {
   if (!price) return "—";
@@ -36,8 +37,8 @@ export default function Products() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-3xl">
+    <AppLayout>
+      <div className="mx-auto max-w-3xl p-6">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-slate-900">Produk</h1>
           <Button onClick={() => setShowForm((v) => !v)} size="sm">
@@ -141,6 +142,6 @@ export default function Products() {
           ))}
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

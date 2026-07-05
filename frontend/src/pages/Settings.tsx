@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettings } from "@/hooks/useSettings";
+import AppLayout from "@/components/AppLayout";
 
 export default function Settings() {
   const { status, isLoading, saveFBToken } = useSettings();
@@ -34,8 +35,8 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-xl">
+    <AppLayout>
+      <div className="mx-auto max-w-xl p-6">
         <h1 className="mb-6 text-xl font-semibold text-slate-900">Pengaturan</h1>
 
         <div className="rounded-lg border bg-white p-5 shadow-sm">
@@ -99,6 +100,6 @@ export default function Settings() {
           </form>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
