@@ -98,7 +98,7 @@ async def handle_stripe_webhook(
         raise ValueError("Signature tidak valid")
 
     event_type = event["type"]
-    obj = event["data"]["object"]
+    obj = event["data"]["object"].to_dict()
 
     if event_type == "checkout.session.completed":
         await _handle_checkout_completed(obj, db)
