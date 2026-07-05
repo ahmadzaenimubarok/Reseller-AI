@@ -93,10 +93,10 @@ export default function AppLayout({ children, escalatedCount }: AppLayoutProps) 
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-slate-200 px-4">
           <img
             src="/logo.jpeg"
-            alt="Reseller AI"
+            alt="Remindly AI"
             className="h-7 w-7 rounded-full object-cover"
           />
-          <span className="text-sm font-semibold text-slate-900">Reseller AI</span>
+          <span className="text-sm font-semibold text-slate-900">Remindly AI</span>
         </div>
 
         {/* Nav links */}
@@ -177,10 +177,10 @@ export default function AppLayout({ children, escalatedCount }: AppLayoutProps) 
           </button>
           <img
             src="/logo.jpeg"
-            alt="Reseller AI"
+            alt="Remindly AI"
             className="h-6 w-6 rounded-full object-cover"
           />
-          <span className="text-sm font-semibold text-slate-900">Reseller AI</span>
+          <span className="text-sm font-semibold text-slate-900">Remindly AI</span>
           {escalatedCount != null && escalatedCount > 0 && (
             <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
               {escalatedCount}

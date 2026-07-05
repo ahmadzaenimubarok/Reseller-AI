@@ -24,7 +24,7 @@ BILLING_SERVICE = Path("app/services/billing_service.py")
 PLANS = [
     {
         "key": "starter",
-        "name": "Reseller AI — Starter",
+        "name": "Remindly AI — Starter",
         "description": "Instagram & TikTok reply, content publish, product discovery",
         "amount": 9900,       # dalam sen IDR (Rp 99.000)
         "currency": "idr",
@@ -32,7 +32,7 @@ PLANS = [
     },
     {
         "key": "pro",
-        "name": "Reseller AI — Pro",
+        "name": "Remindly AI — Pro",
         "description": "Semua fitur Starter + Facebook & WhatsApp, lead classification, analytics",
         "amount": 29900,      # Rp 299.000
         "currency": "idr",
@@ -40,7 +40,7 @@ PLANS = [
     },
     {
         "key": "enterprise",
-        "name": "Reseller AI — Enterprise",
+        "name": "Remindly AI — Enterprise",
         "description": "Unlimited channels, dedicated support, custom SLA",
         "amount": 299000,     # Rp 2.999.000
         "currency": "idr",

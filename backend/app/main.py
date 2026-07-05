@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 app = FastAPI(
-    title="Reseller AI",
+    title="Remindly AI",
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
