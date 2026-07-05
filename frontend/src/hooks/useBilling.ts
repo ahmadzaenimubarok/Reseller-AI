@@ -5,6 +5,8 @@ export interface BillingStatus {
   plan: string;
   plan_expires_at: string | null;
   stripe_customer_id: string | null;
+  pending_plan: string | null;
+  pending_plan_date: string | null;
 }
 
 const PLAN_LABELS: Record<string, string> = {
@@ -40,14 +42,20 @@ export function useBilling() {
     setRedirecting(true);
     try {
       const origin = window.location.origin;
-      const res = await api.post<{ data: { checkout_url: string } }>("/billing/checkout", {
+      const res = await api.post<{ data: { checkout_url: string; modified: boolean } }>("/billing/checkout", {
         plan,
         success_url: `${origin}/billing?success=1`,
         cancel_url: `${origin}/billing?cancel=1`,
       });
-      window.location.href = res.data.data.checkout_url;
+      if (res.data.data.modified) {
+        // Plan langsung diubah tanpa redirect Stripe
+        await fetchStatus();
+        setRedirecting(false);
+      } else {
+        window.location.href = res.data.data.checkout_url;
+      }
     } catch {
-      setError("Gagal membuat checkout. Coba lagi.");
+      setError("Gagal mengubah plan. Coba lagi.");
       setRedirecting(false);
     }
   }

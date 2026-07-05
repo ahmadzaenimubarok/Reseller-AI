@@ -9,9 +9,12 @@ class CreateCheckoutSessionRequest(BaseModel):
 
 class CheckoutSessionResponse(BaseModel):
     checkout_url: str
+    modified: bool = False
 
 
 class BillingStatusResponse(BaseModel):
     plan: str
     plan_expires_at: str | None
     stripe_customer_id: str | None
+    pending_plan: str | None
+    pending_plan_date: str | None

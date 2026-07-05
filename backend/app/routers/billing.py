@@ -35,6 +35,8 @@ async def get_billing_status(
         plan=tenant.plan,
         plan_expires_at=tenant.plan_expires_at,
         stripe_customer_id=tenant.stripe_customer_id,
+        pending_plan=tenant.pending_plan,
+        pending_plan_date=tenant.pending_plan_date,
     ))
 
 
@@ -55,6 +57,12 @@ async def create_checkout(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    # "modified" = subscription langsung diubah, tidak perlu redirect Stripe
+    if url == "modified":
+        return APIResponse(
+            data=CheckoutSessionResponse(checkout_url="", modified=True),
+            message="Plan berhasil diubah.",
+        )
     return APIResponse(
         data=CheckoutSessionResponse(checkout_url=url),
         message="Checkout session berhasil dibuat.",

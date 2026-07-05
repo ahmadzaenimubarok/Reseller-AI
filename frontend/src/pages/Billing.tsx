@@ -78,7 +78,7 @@ export default function Billing() {
 
         {/* Current plan */}
         {!isLoading && status && (
-          <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs text-slate-400 mb-1">Plan aktif</p>
             <div className="flex items-center gap-3">
               <span className="text-lg font-semibold text-slate-900">
@@ -98,6 +98,14 @@ export default function Billing() {
           </div>
         )}
 
+        {/* Pending downgrade banner */}
+        {!isLoading && status?.pending_plan && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Plan akan berubah ke <span className="font-semibold">{planLabel[status.pending_plan] ?? status.pending_plan}</span> pada{" "}
+            <span className="font-semibold">{formatExpiry(status.pending_plan_date)}</span>. Kamu masih bisa menikmati plan saat ini hingga tanggal tersebut.
+          </div>
+        )}
+
         {isLoading && (
           <div className="mb-6 h-16 rounded-lg border border-slate-200 bg-white animate-pulse" />
         )}
@@ -106,15 +114,21 @@ export default function Billing() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => {
             const isCurrent = status?.plan === plan.key;
+            const isPending = status?.pending_plan === plan.key;
             const isFree = plan.key === "free";
             const isEnterprise = plan.key === "enterprise";
-            const canCheckout = !isCurrent && !isFree && !isEnterprise;
+            const canCheckout = !isCurrent && !isFree && !isEnterprise && !isPending;
+            const highlight = isCurrent || isPending;
             return (
               <div
                 key={plan.key}
                 className={[
                   "flex flex-col rounded-lg border bg-white p-5 shadow-sm",
-                  isCurrent ? "border-[#0d7a8a] ring-1 ring-[#0d7a8a]/30" : "border-slate-200",
+                  isCurrent
+                    ? "border-[#0d7a8a] ring-1 ring-[#0d7a8a]/30"
+                    : isPending
+                    ? "border-amber-300 ring-1 ring-amber-200"
+                    : "border-slate-200",
                 ].join(" ")}
               >
                 <div className="mb-3 flex items-center justify-between">
@@ -122,6 +136,11 @@ export default function Billing() {
                   {isCurrent && (
                     <span className="rounded-md bg-[#0d7a8a]/10 px-2 py-0.5 text-xs font-medium text-[#0d7a8a]">
                       Aktif
+                    </span>
+                  )}
+                  {isPending && (
+                    <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      Dijadwalkan
                     </span>
                   )}
                 </div>
@@ -136,11 +155,13 @@ export default function Billing() {
                 </ul>
                 <Button
                   size="sm"
-                  disabled={isCurrent || redirecting || isFree || isEnterprise}
+                  disabled={highlight || redirecting || isFree || isEnterprise}
                   onClick={() => canCheckout && startCheckout(plan.key)}
                   className={
                     isCurrent || isFree
                       ? "bg-slate-100 text-slate-400 cursor-default"
+                      : isPending
+                      ? "bg-amber-100 text-amber-700 cursor-default"
                       : "bg-[#0d7a8a] hover:bg-[#0b6b7a] text-white"
                   }
                 >
@@ -148,10 +169,12 @@ export default function Billing() {
                     ? "Hubungi Kami"
                     : isCurrent
                     ? "Plan Aktif"
+                    : isPending
+                    ? "Dijadwalkan"
                     : isFree
                     ? "Plan Saat Ini"
                     : redirecting
-                    ? "Mengalihkan..."
+                    ? "Memproses..."
                     : "Pilih Plan"}
                 </Button>
               </div>

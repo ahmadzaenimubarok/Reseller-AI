@@ -17,21 +17,24 @@ def test_billing_status_requires_auth(client):
     assert res.status_code == 401
 
 
-def test_billing_status_returns_plan(client):
-    client.post("/api/v1/auth/register", json={
-        "name": "Billing Test",
-        "email": "billingx@test.com",
-        "password": "Test1234!",
-    })
-    client.post("/api/v1/auth/login", json={
-        "email": "billingx@test.com",
-        "password": "Test1234!",
-    })
-    res = client.get("/api/v1/billing/status")
+def test_billing_status_returns_plan():
+    # Gunakan satu session agar cookie login tersimpan
+    with TestClient(app, raise_server_exceptions=False) as c:
+        c.post("/api/v1/auth/register", json={
+            "name": "Billing Test",
+            "email": "billingxtest2@test.com",
+            "password": "Test1234!",
+        })
+        c.post("/api/v1/auth/login", json={
+            "email": "billingxtest2@test.com",
+            "password": "Test1234!",
+        })
+        res = c.get("/api/v1/billing/status")
     assert res.status_code == 200
     data = res.json()
     assert data["success"] is True
     assert data["data"]["plan"] == "free"
+    assert "pending_plan" in data["data"]
 
 
 def test_stripe_webhook_returns_200_on_valid_payload(client):
