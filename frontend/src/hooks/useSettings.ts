@@ -3,6 +3,7 @@ import api from "@/lib/api";
 
 export interface SettingsStatus {
   facebook_connected: boolean;
+  instagram_connected: boolean;
   product_count: number;
 }
 
@@ -29,5 +30,10 @@ export function useSettings() {
     await fetchStatus();
   }
 
-  return { status, isLoading, saveFBToken };
+  async function saveIGToken(pageToken: string, accountId: string): Promise<void> {
+    await api.post("/settings/instagram-token", { page_token: pageToken, instagram_account_id: accountId });
+    await fetchStatus();
+  }
+
+  return { status, isLoading, saveFBToken, saveIGToken };
 }
