@@ -1,8 +1,20 @@
 # Plan: English Standardization + Inbox & Products Upgrade
 
 **Tanggal:** 15 Juli 2026
-**Status:** Draft
+**Status:** Phase 1 selesai, Phase 2 & 3 pending
 **Fase:** 5b — UI/UX Improvement
+
+---
+
+## Progress
+
+- [x] **Phase 1: English Standardization** — SELESAI (15 Juli 2026)
+  - Frontend: 13 files diupdate (Login, Settings, Products, FacebookCallback, InstagramCallback, InstagramConnect, FacebookPages, ShopifyConnect, ShopifyCallback, FeatureGate, AppLayout, Terms, Privacy)
+  - Backend: 12 files diupdate (auth, products, conversations, leads, billing, settings, webhooks, facebook_oauth, instagram_oauth, shopify_oauth, auth_service, billing_service, product_service, tenant_context)
+  - Tests: 4 test files diupdate (test_billing_service, test_settings_router, test_facebook_oauth_router, test_billing_router)
+  - Build & tests pass
+- [ ] **Phase 2: Inbox Upgrade** — BELUM DIMULAI (pending penjelasan detail upgrade)
+- [ ] **Phase 3: Products Upgrade** — BELUM DIMULAI (pending penjelasan detail upgrade)
 
 ---
 
