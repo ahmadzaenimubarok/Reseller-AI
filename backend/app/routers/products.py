@@ -39,7 +39,7 @@ async def create_product_endpoint(
 ):
     tenant_id: str = request.state.tenant_id
     product = await create_product(tenant_id, body, db)
-    return APIResponse(data=ProductResponse.model_validate(product), message="Produk berhasil ditambahkan.")
+    return APIResponse(data=ProductResponse.model_validate(product), message="Product added successfully.")
 
 
 @router.patch("/{product_id}", response_model=APIResponse[ProductResponse])
@@ -52,7 +52,7 @@ async def update_product_endpoint(
     tenant_id: str = request.state.tenant_id
     product = await update_product(product_id, tenant_id, body, db)
     if product is None:
-        raise HTTPException(status_code=404, detail="Produk tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Product not found.")
     return APIResponse(data=ProductResponse.model_validate(product))
 
 
@@ -65,8 +65,8 @@ async def delete_product_endpoint(
     tenant_id: str = request.state.tenant_id
     deleted = await delete_product(product_id, tenant_id, db)
     if not deleted:
-        raise HTTPException(status_code=404, detail="Produk tidak ditemukan.")
-    return APIResponse(data=None, message="Produk berhasil dihapus.")
+        raise HTTPException(status_code=404, detail="Product not found.")
+    return APIResponse(data=None, message="Product deleted successfully.")
 
 
 @router.post("/shopify/import", response_model=APIResponse[ShopifyImportResponse])
@@ -74,16 +74,16 @@ async def shopify_import_endpoint(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Import produk dari Shopify ke database."""
+    """Import products from Shopify to database."""
     tenant_id: str = request.state.tenant_id
     try:
         result = await import_from_shopify(tenant_id, db)
         return APIResponse(
             data=ShopifyImportResponse(**result),
-            message=f"Import selesai: {result['imported']} produk diimport, {result['updated']} produk diupdate.",
+            message=f"Import complete: {result['imported']} products imported, {result['updated']} products updated.",
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.exception("Shopify import error")
-        raise HTTPException(status_code=500, detail="Gagal import produk dari Shopify.")
+        raise HTTPException(status_code=500, detail="Failed to import products from Shopify.")

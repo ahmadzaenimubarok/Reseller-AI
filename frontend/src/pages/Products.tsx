@@ -25,7 +25,7 @@ export default function Products() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) {
-      setFormError("Nama produk wajib diisi.");
+      setFormError("Product name is required.");
       return;
     }
     setSubmitting(true);
@@ -35,7 +35,7 @@ export default function Products() {
       setForm({ name: "" });
       setShowForm(false);
     } catch {
-      setFormError("Gagal menambahkan produk. Coba lagi.");
+      setFormError("Failed to add product. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -46,7 +46,7 @@ export default function Products() {
     const result = await importFromShopify();
     if (result) {
       setImportResult(
-        `Import selesai: ${result.imported} produk diimport, ${result.updated} produk diupdate.`
+        `Import complete: ${result.imported} products imported, ${result.updated} products updated.`
       );
       // Refresh product list
       window.location.reload();
@@ -57,7 +57,7 @@ export default function Products() {
     <AppLayout>
       <div className="mx-auto max-w-3xl p-6">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-900">Produk</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Products</h1>
           <div className="flex gap-2">
             {status?.shopify_connected && (
               <Button
@@ -66,11 +66,11 @@ export default function Products() {
                 onClick={handleShopifyImport}
                 disabled={isImporting}
               >
-                {isImporting ? "Mengimport..." : "Import dari Shopify"}
+                {isImporting ? "Importing..." : "Import from Shopify"}
               </Button>
             )}
             <Button onClick={() => setShowForm((v) => !v)} size="sm">
-              {showForm ? "Batal" : "+ Tambah Produk"}
+              {showForm ? "Cancel" : "+ Add Product"}
             </Button>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function Products() {
             className="mb-6 rounded-lg border bg-white p-4 shadow-sm space-y-3"
           >
             <div>
-              <Label htmlFor="name">Nama Produk *</Label>
+              <Label htmlFor="name">Product Name *</Label>
               <Input
                 id="name"
                 value={form.name}
@@ -96,17 +96,17 @@ export default function Products() {
               />
             </div>
             <div>
-              <Label htmlFor="desc">Deskripsi</Label>
+              <Label htmlFor="desc">Description</Label>
               <Input
                 id="desc"
                 value={form.description ?? ""}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Cocok untuk lari marathon..."
+                placeholder="Great for marathon running..."
               />
             </div>
             <div className="flex gap-3">
               <div className="flex-1">
-                <Label htmlFor="price">Harga (Rp)</Label>
+                <Label htmlFor="price">Price (Rp)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -122,7 +122,7 @@ export default function Products() {
                 />
               </div>
               <div className="flex-1">
-                <Label htmlFor="link">Link Affiliate</Label>
+                <Label htmlFor="link">Affiliate Link</Label>
                 <Input
                   id="link"
                   value={form.affiliate_link ?? ""}
@@ -133,17 +133,17 @@ export default function Products() {
             </div>
             {formError && <p className="text-sm text-red-600">{formError}</p>}
             <Button type="submit" disabled={submitting} size="sm">
-              {submitting ? "Menyimpan..." : "Simpan Produk"}
+              {submitting ? "Saving..." : "Save Product"}
             </Button>
           </form>
         )}
 
-        {isLoading && <p className="text-sm text-slate-500">Memuat produk...</p>}
+        {isLoading && <p className="text-sm text-slate-500">Loading products...</p>}
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         {!isLoading && products.length === 0 && (
           <div className="rounded-lg border bg-white p-8 text-center text-sm text-slate-500">
-            Belum ada produk. Tambahkan produk agar AI bisa menjawab pertanyaan customer.
+            No products yet. Add products so AI can answer customer questions.
           </div>
         )}
 
@@ -168,7 +168,7 @@ export default function Products() {
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    {p.status === "active" ? "Aktif" : "Nonaktif"}
+                    {p.status === "active" ? "Active" : "Inactive"}
                   </span>
                 </div>
                 {p.description && (
@@ -187,7 +187,7 @@ export default function Products() {
                 className="text-red-500 hover:text-red-700 shrink-0"
                 onClick={() => deleteProduct(p.id)}
               >
-                Hapus
+                Delete
               </Button>
             </div>
           ))}

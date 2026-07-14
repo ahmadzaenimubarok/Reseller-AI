@@ -49,7 +49,7 @@ async def register(
     user, tenant = await register_user(body, db)
     return APIResponse(
         data=TenantResponse.model_validate(tenant),
-        message="Akun berhasil dibuat. Selamat datang!",
+        message="Account created successfully. Welcome!",
     )
 
 
@@ -73,7 +73,7 @@ async def refresh(
 ):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token tidak ditemukan.")
+        raise HTTPException(status_code=401, detail="Refresh token not found.")
     tokens = await refresh_access_token(refresh_token, db)
     response = JSONResponse(
         content={"success": True, "data": {"token_type": "bearer"}, "message": None, "code": None}
@@ -85,7 +85,7 @@ async def refresh(
 @router.post("/logout")
 async def logout():
     response = JSONResponse(
-        content={"success": True, "data": None, "message": "Logout berhasil.", "code": None}
+        content={"success": True, "data": None, "message": "Logged out successfully.", "code": None}
     )
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/")
@@ -96,13 +96,13 @@ async def logout():
 async def me(request: Request):
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=401, detail="Token tidak ditemukan.")
+        raise HTTPException(status_code=401, detail="Token not found.")
     try:
         payload = decode_token(token)
     except JWTError:
-        raise HTTPException(status_code=401, detail="Token tidak valid.")
+        raise HTTPException(status_code=401, detail="Invalid token.")
     if payload.get("type") != "access":
-        raise HTTPException(status_code=401, detail="Tipe token tidak valid.")
+        raise HTTPException(status_code=401, detail="Invalid token type.")
     return APIResponse(data=MeResponse(
         user_id=payload["sub"],
         tenant_id=payload["tenant_id"],

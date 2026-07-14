@@ -61,7 +61,7 @@ async def test_create_checkout_session_raises_if_tenant_not_found():
     execute_result.scalar_one_or_none.return_value = None
     db.execute.return_value = execute_result
 
-    with pytest.raises(ValueError, match="Tenant tidak ditemukan"):
+    with pytest.raises(ValueError, match="Tenant not found"):
         await create_checkout_session(
             tenant_id=tenant_id,
             plan="starter",

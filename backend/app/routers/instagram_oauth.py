@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api/v1/auth/instagram", tags=["instagram-oauth"])
 
 @router.get("/login")
 async def instagram_login(request: Request):
-    """Generate Instagram OAuth URL untuk redirect customer."""
+    """Generate Instagram OAuth URL for redirect."""
     settings = get_settings()
     tenant_id: str = request.state.tenant_id
 
@@ -48,8 +48,8 @@ async def instagram_callback(
     error: str | None = Query(None),
 ):
     """
-    Backend callback endpoint — dipanggil oleh Meta setelah user authorize.
-    Exchange code → token → ambil pages → cek IG accounts → redirect ke frontend.
+    Backend callback endpoint — called by Meta after user authorize.
+    Exchange code → token → get pages → check IG accounts → redirect to frontend.
     """
     settings = get_settings()
 
@@ -62,14 +62,14 @@ async def instagram_callback(
         frontend_url = f"{settings.FRONTEND_URL}/auth/instagram/callback?error={error_msg}"
         return RedirectResponse(url=frontend_url)
 
-    # 1. Tukar code → short-lived token
+    # 1. Exchange code → short-lived token
     short_token_data = await exchange_code_for_token(code)
     if not short_token_data:
         error_msg = "exchange_failed"
         frontend_url = f"{settings.FRONTEND_URL}/auth/instagram/callback?error={error_msg}"
         return RedirectResponse(url=frontend_url)
 
-    # 2. Tukar → long-lived token
+    # 2. Exchange → long-lived token
     long_token_data = await exchange_to_long_lived_token(short_token_data["access_token"])
     if not long_token_data:
         error_msg = "long_lived_exchange_failed"
@@ -78,13 +78,13 @@ async def instagram_callback(
 
     long_token = long_token_data["access_token"]
 
-    # 3. Ambil daftar Pages
+    # 3. Get Pages list
     pages = await get_user_pages(long_token)
 
-    # 4. Untuk setiap page, cek apakah punya Instagram Business Account
+    # 4. For each page, check if it has Instagram Business Account
     ig_accounts = await get_instagram_accounts_for_pages(long_token, pages)
 
-    # 5. Encode data dan redirect ke frontend
+    # 5. Encode data and redirect to frontend
     callback_data = {
         "state": state,
         "accounts": ig_accounts,
@@ -102,7 +102,7 @@ async def instagram_connect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Simpan koneksi Instagram ke tenant."""
+    """Save Instagram connection to tenant."""
     tenant_id: str = request.state.tenant_id
 
     await save_instagram_connection(
@@ -114,7 +114,7 @@ async def instagram_connect(
     )
 
     return {
-        "message": "Instagram berhasil dihubungkan.",
+        "message": "Instagram connected successfully.",
         "instagram_account_id": body.instagram_account_id,
     }
 
@@ -124,8 +124,8 @@ async def instagram_disconnect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Hapus koneksi Instagram untuk tenant."""
+    """Remove Instagram connection for tenant."""
     tenant_id: str = request.state.tenant_id
     await disconnect_instagram_connection(tenant_id, db)
 
-    return {"message": "Instagram connection berhasil dihapus."}
+    return {"message": "Instagram connection removed successfully."}

@@ -38,7 +38,7 @@ def test_instagram_token_endpoint_saves_token(auth_client):
         })
 
     assert res.status_code == 200
-    assert res.json()["message"] == "Instagram token berhasil disimpan."
+    assert res.json()["message"] == "Instagram token saved successfully."
     mock_save.assert_called_once()
 
 

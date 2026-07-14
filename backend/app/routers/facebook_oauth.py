@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1/auth/facebook", tags=["facebook-oauth"])
 
 @router.get("/login")
 async def facebook_login(request: Request):
-    """Generate Facebook OAuth URL untuk redirect customer."""
+    """Generate Facebook OAuth URL for redirect."""
     settings = get_settings()
     tenant_id: str = request.state.tenant_id
 
@@ -49,30 +49,30 @@ async def facebook_callback(
     error: str | None = Query(None),
 ):
     """
-    Backend callback endpoint — dipanggil oleh Facebook setelah user authorize.
-    Exchange code → token → ambil pages → redirect ke frontend.
+    Backend callback endpoint — called by Facebook after user authorize.
+    Exchange code → token → get pages → redirect to frontend.
     """
     settings = get_settings()
 
-    # Jika ada error dari Facebook
+    # If error from Facebook
     if error:
         frontend_url = f"{settings.FRONTEND_URL}/auth/facebook/callback?error={error}"
         return RedirectResponse(url=frontend_url)
 
-    # Jika tidak ada code
+    # If no code
     if not code:
         error_msg = "no_code"
         frontend_url = f"{settings.FRONTEND_URL}/auth/facebook/callback?error={error_msg}"
         return RedirectResponse(url=frontend_url)
 
-    # 1. Tukar code → short-lived token
+    # 1. Exchange code → short-lived token
     short_token_data = await exchange_code_for_token(code)
     if not short_token_data:
         error_msg = "exchange_failed"
         frontend_url = f"{settings.FRONTEND_URL}/auth/facebook/callback?error={error_msg}"
         return RedirectResponse(url=frontend_url)
 
-    # 2. Tukar → long-lived token
+    # 2. Exchange → long-lived token
     long_token_data = await exchange_to_long_lived_token(short_token_data["access_token"])
     if not long_token_data:
         error_msg = "long_lived_exchange_failed"
@@ -81,13 +81,13 @@ async def facebook_callback(
 
     long_token = long_token_data["access_token"]
 
-    # 3. Ambil Facebook User ID
+    # 3. Get Facebook User ID
     user_id = await get_facebook_user_id(long_token)
 
-    # 4. Ambil daftar Pages
+    # 4. Get Pages list
     pages = await get_user_pages(long_token)
 
-    # 5. Encode data dan redirect ke frontend
+    # 5. Encode data and redirect to frontend
     callback_data = {
         "state": state,
         "facebook_user_id": user_id,
@@ -101,7 +101,7 @@ async def facebook_callback(
         ],
     }
 
-    # Base64 encode data untuk passing ke frontend
+    # Base64 encode data for passing to frontend
     encoded_data = base64.urlsafe_b64encode(json.dumps(callback_data).encode()).decode()
     frontend_url = f"{settings.FRONTEND_URL}/auth/facebook/callback?data={encoded_data}"
 
@@ -114,10 +114,10 @@ async def facebook_connect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Simpan koneksi Facebook Page ke tenant."""
+    """Save Facebook Page connection to tenant."""
     tenant_id: str = request.state.tenant_id
 
-    # Simpan koneksi
+    # Save connection
     await save_facebook_connection(
         tenant_id=tenant_id,
         user_id="",
@@ -126,7 +126,7 @@ async def facebook_connect(
         db=db,
     )
 
-    # Subscribe ke webhook
+    # Subscribe to webhook
     subscribed = await subscribe_page_to_webhook(body.page_id, body.access_token)
     if not subscribed:
         logger.warning(
@@ -135,7 +135,7 @@ async def facebook_connect(
         )
 
     return {
-        "message": "Facebook Page berhasil dihubungkan.",
+        "message": "Facebook Page connected successfully.",
         "page_id": body.page_id,
         "webhook_subscribed": subscribed,
     }
@@ -146,8 +146,8 @@ async def facebook_disconnect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Hapus koneksi Facebook untuk tenant."""
+    """Remove Facebook connection for tenant."""
     tenant_id: str = request.state.tenant_id
     await disconnect_facebook_connection(tenant_id, db)
 
-    return {"message": "Facebook connection berhasil dihapus."}
+    return {"message": "Facebook connection removed successfully."}

@@ -10,7 +10,7 @@ export default function Settings() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-xl p-6">
-        <h1 className="mb-6 text-xl font-semibold text-slate-900">Pengaturan</h1>
+        <h1 className="mb-6 text-xl font-semibold text-slate-900">Settings</h1>
 
         {/* Facebook Card */}
         <div className="rounded-lg border bg-white p-5 shadow-sm">
@@ -24,20 +24,20 @@ export default function Settings() {
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
-                {status?.facebook_connected ? "Terhubung" : "Belum terhubung"}
+                {status?.facebook_connected ? "Connected" : "Not connected"}
               </span>
             )}
           </div>
 
           <p className="mb-4 text-sm text-slate-500">
-            Hubungkan Facebook Page Anda untuk mengaktifkan auto-reply komentar dan Messenger DM.
+            Connect your Facebook Page to enable auto-reply for comments and Messenger DM.
           </p>
 
           {status?.facebook_connected ? (
             <div className="space-y-3">
-              <p className="text-sm text-green-600">✓ Facebook Page terhubung</p>
+              <p className="text-sm text-green-600">✓ Facebook Page connected</p>
               <Button variant="outline" size="sm" onClick={() => navigate("/auth/facebook/pages")}>
-                Hubungkan Page Lain
+                Connect Another Page
               </Button>
             </div>
           ) : (
@@ -59,20 +59,20 @@ export default function Settings() {
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
-                {status?.instagram_connected ? "Terhubung" : "Belum terhubung"}
+                {status?.instagram_connected ? "Connected" : "Not connected"}
               </span>
             )}
           </div>
 
           <p className="mb-4 text-sm text-slate-500">
-            Hubungkan akun Instagram Business Anda untuk mengaktifkan auto-reply DM Instagram.
+            Connect your Instagram Business account to enable auto-reply for Instagram DM.
           </p>
 
           {status?.instagram_connected ? (
             <div className="space-y-3">
-              <p className="text-sm text-green-600">✓ Instagram terhubung</p>
+              <p className="text-sm text-green-600">✓ Instagram connected</p>
               <Button variant="outline" size="sm" onClick={() => navigate("/auth/instagram/connect")}>
-                Hubungkan Akun Lain
+                Connect Another Account
               </Button>
             </div>
           ) : (
@@ -94,20 +94,20 @@ export default function Settings() {
                     : "bg-slate-100 text-slate-500"
                 }`}
               >
-                {status?.shopify_connected ? "Terhubung" : "Belum terhubung"}
+                {status?.shopify_connected ? "Connected" : "Not connected"}
               </span>
             )}
           </div>
 
           <p className="mb-4 text-sm text-slate-500">
-            Hubungkan Shopify untuk mengimpor produk secara otomatis.
+            Connect Shopify to automatically import products.
           </p>
 
           {status?.shopify_connected ? (
             <div className="space-y-3">
-              <p className="text-sm text-green-600">✓ Shopify terhubung</p>
+              <p className="text-sm text-green-600">✓ Shopify connected</p>
               <Button variant="outline" size="sm" onClick={() => navigate("/auth/shopify/connect")}>
-                Hubungkan Toko Lain
+                Connect Another Store
               </Button>
             </div>
           ) : (

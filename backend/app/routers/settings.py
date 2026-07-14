@@ -31,7 +31,7 @@ async def save_facebook_token(
 ):
     tenant_id: str = request.state.tenant_id
     await save_fb_token(tenant_id, body.page_token, body.page_id, db)
-    return APIResponse(data=None, message="Facebook Page token berhasil disimpan.")
+    return APIResponse(data=None, message="Facebook Page token saved successfully.")
 
 
 @router.post("/instagram-token", response_model=APIResponse[None])
@@ -42,4 +42,4 @@ async def save_instagram_token(
 ):
     tenant_id: str = request.state.tenant_id
     await save_ig_token(tenant_id, body.page_token, body.instagram_account_id, db)
-    return APIResponse(data=None, message="Instagram token berhasil disimpan.")
+    return APIResponse(data=None, message="Instagram token saved successfully.")

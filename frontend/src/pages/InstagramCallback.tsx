@@ -26,14 +26,14 @@ export default function InstagramCallback() {
     const error = searchParams.get("error");
     if (error) {
       setStep("error");
-      setErrorMessage("Authorization dibatalkan atau gagal.");
+      setErrorMessage("Authorization cancelled or failed.");
       return;
     }
 
     const data = searchParams.get("data");
     if (!data) {
       setStep("error");
-      setErrorMessage("Data tidak ditemukan.");
+      setErrorMessage("Data not found.");
       return;
     }
 
@@ -45,12 +45,12 @@ export default function InstagramCallback() {
       } else {
         setStep("error");
         setErrorMessage(
-          "Tidak ditemukan akun Instagram Business yang terhubung dengan Facebook Page Anda. Pastikan akun Instagram Anda adalah Business Account dan sudah terhubung ke Facebook Page."
+          "No Instagram Business account found. Make sure your Instagram account is a Business Account connected to a Facebook Page."
         );
       }
     } catch {
       setStep("error");
-      setErrorMessage("Gagal memproses data.");
+      setErrorMessage("Failed to process data.");
     }
   }, [searchParams]);
 
@@ -82,7 +82,7 @@ export default function InstagramCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-            <p className="text-slate-600">Memproses authorization...</p>
+            <p className="text-slate-600">Processing authorization...</p>
           </div>
         </div>
       </AppLayout>
@@ -95,10 +95,10 @@ export default function InstagramCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 text-4xl text-red-500">✕</div>
-            <h2 className="mb-2 text-lg font-semibold text-slate-900">Gagal</h2>
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Failed</h2>
             <p className="text-slate-600">{errorMessage || oauthError}</p>
             <Button className="mt-4" onClick={() => navigate("/settings")} variant="outline">
-              Kembali ke Settings
+              Back to Settings
             </Button>
           </div>
         </div>
@@ -110,9 +110,9 @@ export default function InstagramCallback() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-xl p-6">
-          <h1 className="mb-4 text-xl font-semibold text-slate-900">Pilih Akun Instagram</h1>
+          <h1 className="mb-4 text-xl font-semibold text-slate-900">Select Instagram Account</h1>
           <p className="mb-6 text-sm text-slate-500">
-            Pilih akun Instagram Business yang ingin dihubungkan.
+            Select the Instagram Business account to connect.
           </p>
 
           <div className="space-y-3">
@@ -149,10 +149,10 @@ export default function InstagramCallback() {
 
           <div className="mt-6 flex gap-3">
             <Button onClick={handleConnect} disabled={!selectedAccountId || loading}>
-              {loading ? "Menghubungkan..." : "Hubungkan Instagram"}
+              {loading ? "Connecting..." : "Connect Instagram"}
             </Button>
             <Button variant="outline" onClick={() => navigate("/settings")}>
-              Batal
+              Cancel
             </Button>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function InstagramCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-            <p className="text-slate-600">Menghubungkan Instagram...</p>
+            <p className="text-slate-600">Connecting Instagram...</p>
           </div>
         </div>
       </AppLayout>
@@ -178,8 +178,8 @@ export default function InstagramCallback() {
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <div className="mb-4 text-4xl text-green-500">✓</div>
-          <h2 className="mb-2 text-lg font-semibold text-slate-900">Berhasil!</h2>
-          <p className="text-slate-600">Instagram berhasil dihubungkan.</p>
+          <h2 className="mb-2 text-lg font-semibold text-slate-900">Success!</h2>
+          <p className="text-slate-600">Instagram connected successfully.</p>
         </div>
       </div>
     </AppLayout>

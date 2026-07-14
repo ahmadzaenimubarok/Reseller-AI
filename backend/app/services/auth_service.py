@@ -50,7 +50,7 @@ async def register_user(
 ) -> tuple[User, Tenant]:
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Email sudah terdaftar.")
+        raise HTTPException(status_code=409, detail="Email already registered.")
 
     tenant = await provision_tenant(name=body.name, email=body.email, db=db)
 
@@ -75,10 +75,10 @@ async def login_user(body: LoginRequest, db: AsyncSession) -> TokenPair:
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Email atau password salah.")
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     if not user.is_active:
-        raise HTTPException(status_code=403, detail="Akun dinonaktifkan.")
+        raise HTTPException(status_code=403, detail="Account is deactivated.")
 
     logger.info("User logged in", extra={"user_id": str(user.id)})
     return _make_token_pair(user)
@@ -90,16 +90,16 @@ async def refresh_access_token(
     try:
         payload = decode_token(refresh_token)
     except JWTError:
-        raise HTTPException(status_code=401, detail="Refresh token tidak valid.")
+        raise HTTPException(status_code=401, detail="Invalid refresh token.")
 
     if payload.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Bukan refresh token.")
+        raise HTTPException(status_code=401, detail="Not a refresh token.")
 
     user_id = payload.get("sub")
     result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
     user = result.scalar_one_or_none()
 
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User tidak ditemukan atau nonaktif.")
+        raise HTTPException(status_code=401, detail="User not found or inactive.")
 
     return _make_token_pair(user)

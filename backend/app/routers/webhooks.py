@@ -20,7 +20,7 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
 def _verify_fb_signature(body: bytes, signature_header: str | None, app_secret: str) -> bool:
-    """Verifikasi X-Hub-Signature-256 dari Facebook."""
+    """Verify X-Hub-Signature-256 from Facebook."""
     if not signature_header or not signature_header.startswith("sha256="):
         return False
     expected = "sha256=" + hmac.new(
@@ -30,7 +30,7 @@ def _verify_fb_signature(body: bytes, signature_header: str | None, app_secret: 
 
 
 async def _get_tenant_id_by_page_id(page_id: str, db: AsyncSession) -> str | None:
-    """Lookup tenant_id dari page_id yang ada di database."""
+    """Lookup tenant_id from page_id in database."""
     result = await db.execute(
         select(TenantCredential.tenant_id).where(
             TenantCredential.platform == "facebook",
@@ -42,7 +42,7 @@ async def _get_tenant_id_by_page_id(page_id: str, db: AsyncSession) -> str | Non
 
 
 async def _get_tenant_id_by_ig_account_id(account_id: str, db: AsyncSession) -> str | None:
-    """Lookup tenant_id dari Instagram account_id (stored in facebook_user_id column)."""
+    """Lookup tenant_id from Instagram account_id (stored in facebook_user_id column)."""
     result = await db.execute(
         select(TenantCredential.tenant_id).where(
             TenantCredential.platform == "instagram",
@@ -59,12 +59,12 @@ async def facebook_verify(
     hub_verify_token: str = Query(alias="hub.verify_token"),
     hub_challenge: str = Query(alias="hub.challenge"),
 ) -> str:
-    """Endpoint verifikasi webhook Facebook — dipanggil satu kali saat setup."""
+    """Facebook webhook verification endpoint — called once during setup."""
     settings = get_settings()
     if hub_mode == "subscribe" and hub_verify_token == settings.META_VERIFY_TOKEN:
         logger.info("Facebook webhook verified")
         return hub_challenge
-    raise HTTPException(status_code=403, detail="Verify token tidak valid.")
+    raise HTTPException(status_code=403, detail="Invalid verify token.")
 
 
 @router.post("/facebook")
@@ -72,7 +72,7 @@ async def facebook_receive(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
-    """Terima event webhook Facebook (komentar + Messenger DM)."""
+    """Receive Facebook webhook events (comments + Messenger DM)."""
     settings = get_settings()
     body = await request.body()
 
@@ -80,15 +80,15 @@ async def facebook_receive(
         signature = request.headers.get("X-Hub-Signature-256")
         if not _verify_fb_signature(body, signature, settings.META_APP_SECRET):
             logger.warning("Invalid Facebook webhook signature")
-            raise HTTPException(status_code=403, detail="Signature tidak valid.")
+            raise HTTPException(status_code=403, detail="Invalid signature.")
 
     try:
         payload = FacebookWebhookPayload.model_validate_json(body)
     except Exception:
-        raise HTTPException(status_code=400, detail="Payload tidak valid.")
+        raise HTTPException(status_code=400, detail="Invalid payload.")
 
     if payload.object != "page":
-        return {"status": "ignored", "reason": "object bukan page"}
+        return {"status": "ignored", "reason": "object is not a page"}
 
     queued = 0
     for entry in payload.entry:
@@ -141,12 +141,12 @@ async def instagram_verify(
     hub_verify_token: str = Query(alias="hub.verify_token"),
     hub_challenge: str = Query(alias="hub.challenge"),
 ) -> str:
-    """Endpoint verifikasi webhook Instagram — dipanggil sekali saat setup di Meta Console."""
+    """Verify Instagram webhook — called once during setup in Meta Console."""
     settings = get_settings()
     if hub_mode == "subscribe" and hub_verify_token == settings.META_VERIFY_TOKEN:
         logger.info("Instagram webhook verified")
         return hub_challenge
-    raise HTTPException(status_code=403, detail="Verify token tidak valid.")
+    raise HTTPException(status_code=403, detail="Invalid verify token.")
 
 
 @router.post("/instagram")
@@ -154,7 +154,7 @@ async def instagram_receive(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
-    """Terima event webhook Instagram (DM)."""
+    """Receive Instagram webhook events (DM)."""
     settings = get_settings()
     body = await request.body()
 
@@ -162,15 +162,15 @@ async def instagram_receive(
         signature = request.headers.get("X-Hub-Signature-256")
         if not _verify_fb_signature(body, signature, settings.META_APP_SECRET):
             logger.warning("Invalid Instagram webhook signature")
-            raise HTTPException(status_code=403, detail="Signature tidak valid.")
+            raise HTTPException(status_code=403, detail="Invalid signature.")
 
     try:
         payload = FacebookWebhookPayload.model_validate_json(body)
     except Exception:
-        raise HTTPException(status_code=400, detail="Payload tidak valid.")
+        raise HTTPException(status_code=400, detail="Invalid payload.")
 
     if payload.object != "instagram":
-        return {"status": "ignored", "reason": "object bukan instagram"}
+        return {"status": "ignored", "reason": "object is not instagram"}
 
     queued = 0
     for entry in payload.entry:

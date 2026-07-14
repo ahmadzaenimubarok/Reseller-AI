@@ -30,7 +30,7 @@ async def get_billing_status(
     result = await db.execute(select(Tenant).where(Tenant.id == uuid.UUID(tenant_id)))
     tenant = result.scalar_one_or_none()
     if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Tenant not found.")
     return APIResponse(data=BillingStatusResponse(
         plan=tenant.plan,
         plan_expires_at=tenant.plan_expires_at,
@@ -57,15 +57,15 @@ async def create_checkout(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    # "modified" = subscription langsung diubah, tidak perlu redirect Stripe
+    # "modified" = subscription changed directly, no Stripe redirect needed
     if url == "modified":
         return APIResponse(
             data=CheckoutSessionResponse(checkout_url="", modified=True),
-            message="Plan berhasil diubah.",
+            message="Plan updated successfully.",
         )
     return APIResponse(
         data=CheckoutSessionResponse(checkout_url=url),
-        message="Checkout session berhasil dibuat.",
+        message="Checkout session created successfully.",
     )
 
 

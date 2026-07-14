@@ -166,5 +166,5 @@ def test_facebook_disconnect_removes_connection(auth_client):
         res = auth_client.delete("/api/v1/auth/facebook/disconnect")
 
     assert res.status_code == 200
-    assert "berhasil dihapus" in res.json()["message"]
+    assert "removed successfully" in res.json()["message"]
     mock_disconnect.assert_called_once()

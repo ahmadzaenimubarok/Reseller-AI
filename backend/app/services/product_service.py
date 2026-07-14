@@ -81,11 +81,11 @@ async def delete_product(
 
 
 async def import_from_shopify(tenant_id: str, db: AsyncSession) -> dict:
-    """Import produk dari Shopify ke database."""
+    """Import products from Shopify to database."""
     # 1. Ambil kredensial Shopify
     credentials = await get_shopify_credentials(tenant_id, db)
     if not credentials:
-        raise ValueError("Shopify belum terhubung.")
+        raise ValueError("Shopify is not connected.")
 
     shop_domain = credentials["shop_domain"]
     access_token = credentials["access_token"]

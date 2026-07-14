@@ -59,7 +59,7 @@ const NAV_ITEMS = [
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  /** Badge merah di header Inbox — jumlah percakapan eskalasi */
+  /** Red badge in Inbox header — escalated conversation count */
   escalatedCount?: number;
 }
 

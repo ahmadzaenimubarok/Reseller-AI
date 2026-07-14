@@ -22,13 +22,13 @@ export default function ShopifyCallback() {
 
     if (errorParam) {
       setStatus("error");
-      setError(`Gagal menghubungkan Shopify: ${errorParam}`);
+      setError(`Failed to connect Shopify: ${errorParam}`);
       return;
     }
 
     if (!dataParam) {
       setStatus("error");
-      setError("Data callback tidak ditemukan.");
+      setError("Callback data not found.");
       return;
     }
 
@@ -45,11 +45,11 @@ export default function ShopifyCallback() {
         setTimeout(() => navigate("/settings"), 2000);
       }).catch((err) => {
         setStatus("error");
-        setError(err.response?.data?.detail || "Gagal menyimpan koneksi Shopify.");
+        setError(err.response?.data?.detail || "Failed to save Shopify connection.");
       });
     } catch {
       setStatus("error");
-      setError("Gagal memproses data callback.");
+      setError("Failed to process callback data.");
     }
   }, [searchParams, navigate]);
 
@@ -60,7 +60,7 @@ export default function ShopifyCallback() {
           {status === "loading" && (
             <>
               <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
-              <p className="text-sm text-slate-600">Menghubungkan Shopify...</p>
+              <p className="text-sm text-slate-600">Connecting to Shopify...</p>
             </>
           )}
 
@@ -69,9 +69,9 @@ export default function ShopifyCallback() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                 <span className="text-2xl">✓</span>
               </div>
-              <h1 className="text-lg font-semibold text-slate-900">Berhasil!</h1>
+              <h1 className="text-lg font-semibold text-slate-900">Success!</h1>
               <p className="mt-2 text-sm text-slate-500">
-                Shopify store berhasil dihubungkan. Mengalihkan ke pengaturan...
+                Shopify store connected successfully. Redirecting to settings...
               </p>
             </>
           )}
@@ -81,14 +81,14 @@ export default function ShopifyCallback() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
                 <span className="text-2xl">✕</span>
               </div>
-              <h1 className="text-lg font-semibold text-slate-900">Gagal</h1>
+              <h1 className="text-lg font-semibold text-slate-900">Failed</h1>
               <p className="mt-2 text-sm text-red-600">{error}</p>
               <Button
                 onClick={() => navigate("/settings")}
                 className="mt-4"
                 variant="outline"
               >
-                Kembali ke Pengaturan
+                Back to Settings
               </Button>
             </>
           )}

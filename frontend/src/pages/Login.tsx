@@ -23,7 +23,7 @@ export default function Login() {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Email atau password salah.";
+          ?.message ?? "Invalid email or password.";
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -38,7 +38,7 @@ export default function Login() {
             <img src="/logo.jpeg" alt="Remindly AI" className="h-12 w-12 rounded-full object-cover" />
           </div>
           <CardTitle className="text-lg font-semibold text-slate-900 text-center">
-            Masuk ke Dashboard
+            Sign in to Dashboard
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -83,7 +83,7 @@ export default function Login() {
               disabled={isLoading}
               className="w-full bg-slate-900 text-white hover:bg-slate-800"
             >
-              {isLoading ? "Memproses..." : "Masuk"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </CardContent>

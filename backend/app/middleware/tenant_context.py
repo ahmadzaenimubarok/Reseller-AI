@@ -24,15 +24,15 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
 
         token = self._extract_token(request)
         if not token:
-            return self._unauthorized("Token tidak ditemukan.")
+            return self._unauthorized("Token not found.")
 
         try:
             payload = decode_token(token)
         except JWTError:
-            return self._unauthorized("Token tidak valid atau sudah kedaluwarsa.")
+            return self._unauthorized("Invalid or expired token.")
 
         if payload.get("type") != "access":
-            return self._unauthorized("Tipe token tidak valid.")
+            return self._unauthorized("Invalid token type.")
 
         request.state.tenant_id = payload.get("tenant_id")
         request.state.user_id = payload.get("sub")

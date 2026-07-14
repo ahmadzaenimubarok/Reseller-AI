@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/leads", tags=["leads"])
 
 
 async def _enrich_leads(leads: list[Lead], tenant_id: str, db: AsyncSession) -> list[LeadResponse]:
-    """Join customer name & platform ke lead response."""
+    """Join customer name & platform to lead response."""
     customer_ids = [l.customer_id for l in leads]
     customers: dict[uuid.UUID, Customer] = {}
     if customer_ids:
@@ -78,7 +78,7 @@ async def archive_lead_endpoint(
 
     lead = await archive_lead(lead_id, tenant_id, db)
     if lead is None:
-        raise HTTPException(status_code=404, detail="Lead tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Lead not found.")
 
     logger.info("Lead archived via API", extra={"lead_id": str(lead_id), "tenant_id": tenant_id})
     enriched = await _enrich_leads([lead], tenant_id, db)
@@ -95,7 +95,7 @@ async def resolve_lead_endpoint(
 
     lead = await resolve_lead(lead_id, tenant_id, db)
     if lead is None:
-        raise HTTPException(status_code=404, detail="Lead tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Lead not found.")
 
     logger.info("Lead resolved via API", extra={"lead_id": str(lead_id), "tenant_id": tenant_id})
     enriched = await _enrich_leads([lead], tenant_id, db)

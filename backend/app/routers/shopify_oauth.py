@@ -24,11 +24,11 @@ router = APIRouter(prefix="/api/v1/auth/shopify", tags=["shopify-oauth"])
 
 @router.get("/login")
 async def shopify_login(request: Request, shop: str):
-    """Generate Shopify OAuth URL untuk redirect customer."""
+    """Generate Shopify OAuth URL for redirect."""
     settings = get_settings()
     tenant_id: str = request.state.tenant_id
 
-    # Pastikan format: my-store.myshopify.com (bukan my-store.myshopify.com.myshopify.com)
+    # Ensure format: my-store.myshopify.com (not my-store.myshopify.com.myshopify.com)
     shop_domain = shop.strip().lower()
     if not shop_domain.endswith(".myshopify.com"):
         shop_domain = f"{shop_domain}.myshopify.com"
@@ -51,23 +51,23 @@ async def shopify_callback(
     error: str | None = Query(None),
 ):
     """
-    Backend callback endpoint — dipanggil oleh Shopify setelah user authorize.
-    Exchange code → token → ambil shop info → redirect ke frontend.
+    Backend callback endpoint — called by Shopify after user authorize.
+    Exchange code → token → get shop info → redirect to frontend.
     """
     settings = get_settings()
 
-    # Jika ada error dari Shopify
+    # If error from Shopify
     if error:
         frontend_url = f"{settings.FRONTEND_URL}/auth/shopify/callback?error={error}"
         return RedirectResponse(url=frontend_url)
 
-    # Jika tidak ada code
+    # If no code
     if not code:
         error_msg = "no_code"
         frontend_url = f"{settings.FRONTEND_URL}/auth/shopify/callback?error={error_msg}"
         return RedirectResponse(url=frontend_url)
 
-    # 1. Tukar code → access token
+    # 1. Exchange code → access token
     token_data = await exchange_code_for_token(shop, code)
     if not token_data:
         error_msg = "exchange_failed"
@@ -76,11 +76,11 @@ async def shopify_callback(
 
     access_token = token_data.get("access_token")
 
-    # 2. Ambil info toko
+    # 2. Get shop info
     shop_info = await get_shop_info(shop, access_token)
     shop_name = shop_info.get("name", shop) if shop_info else shop
 
-    # 3. Encode data dan redirect ke frontend
+    # 3. Encode data and redirect to frontend
     callback_data = {
         "state": state,
         "shop_domain": shop,
@@ -88,7 +88,7 @@ async def shopify_callback(
         "access_token": access_token,
     }
 
-    # Base64 encode data untuk passing ke frontend
+    # Base64 encode data for passing to frontend
     encoded_data = base64.urlsafe_b64encode(json.dumps(callback_data).encode()).decode()
     frontend_url = f"{settings.FRONTEND_URL}/auth/shopify/callback?data={encoded_data}"
 
@@ -101,10 +101,10 @@ async def shopify_connect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Simpan koneksi Shopify ke tenant."""
+    """Save Shopify connection to tenant."""
     tenant_id: str = request.state.tenant_id
 
-    # Simpan koneksi
+    # Save connection
     await save_shopify_connection(
         tenant_id=tenant_id,
         shop_domain=body.shop_domain,
@@ -114,7 +114,7 @@ async def shopify_connect(
     )
 
     return {
-        "message": "Shopify store berhasil dihubungkan.",
+        "message": "Shopify store connected successfully.",
         "shop_domain": body.shop_domain,
         "shop_name": body.shop_name,
     }
@@ -125,8 +125,8 @@ async def shopify_disconnect(
     request: Request,
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Hapus koneksi Shopify untuk tenant."""
+    """Remove Shopify connection for tenant."""
     tenant_id: str = request.state.tenant_id
     await disconnect_shopify_connection(tenant_id, db)
 
-    return {"message": "Shopify connection berhasil dihapus."}
+    return {"message": "Shopify connection removed successfully."}

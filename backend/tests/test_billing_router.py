@@ -51,7 +51,7 @@ def test_stripe_webhook_returns_200_on_valid_payload(client):
 
 def test_stripe_webhook_returns_400_on_invalid_signature(client):
     with patch("app.routers.billing.handle_stripe_webhook", new_callable=AsyncMock) as mock_handler:
-        mock_handler.side_effect = ValueError("Signature tidak valid")
+        mock_handler.side_effect = ValueError("Invalid signature")
         res = client.post(
             "/webhooks/stripe",
             content=b'{"type":"checkout.session.completed"}',

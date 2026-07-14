@@ -11,26 +11,26 @@ type StatusConfig = {
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   not_configured: {
-    title: "Belum terhubung",
-    desc: "Hubungkan integrasi ini untuk mengaktifkan fitur.",
-    action: "Buka Settings",
+    title: "Not connected",
+    desc: "Connect this integration to enable the feature.",
+    action: "Go to Settings",
     href: "/settings/integrations",
   },
   expired: {
-    title: "Koneksi kedaluwarsa",
-    desc: "Sambungkan ulang akun kamu untuk melanjutkan.",
+    title: "Connection expired",
+    desc: "Reconnect your account to continue.",
     action: "Reconnect",
     href: "/settings/integrations",
   },
   plan_locked: {
-    title: "Tersedia di plan lebih tinggi",
-    desc: "Upgrade untuk mengakses fitur ini.",
-    action: "Lihat Plan",
+    title: "Available on a higher plan",
+    desc: "Upgrade to access this feature.",
+    action: "View Plan",
     href: "/billing",
   },
   quota_exceeded: {
-    title: "Kuota bulan ini sudah habis",
-    desc: "Upgrade atau tunggu reset bulan depan.",
+    title: "Monthly quota exceeded",
+    desc: "Upgrade or wait for monthly reset.",
     action: "Upgrade Plan",
     href: "/billing",
   },

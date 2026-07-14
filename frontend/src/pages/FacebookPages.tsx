@@ -20,22 +20,22 @@ export default function FacebookPages() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-xl p-6">
-        <h1 className="mb-4 text-xl font-semibold text-slate-900">Hubungkan Facebook</h1>
+        <h1 className="mb-4 text-xl font-semibold text-slate-900">Connect Facebook</h1>
         <p className="mb-6 text-sm text-slate-500">
-          Klik tombol di bawah untuk menghubungkan Facebook Page Anda.
+          Click the button below to connect your Facebook Page.
         </p>
 
         <div className="rounded-lg border bg-white p-5 shadow-sm">
           <h2 className="mb-4 font-medium text-slate-800">Facebook Page</h2>
           <p className="mb-4 text-sm text-slate-500">
-            Anda akan diarahkan ke Facebook untuk memberikan izin akses. Setelah itu, Anda dapat
-            memilih Page yang ingin dihubungkan.
+            You'll be redirected to Facebook to grant access. After that, you can
+            select the Page you want to connect.
           </p>
 
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
           <Button onClick={handleConnect} disabled={loading || !loginUrl}>
-            {loading ? "Memuat..." : "Connect Facebook"}
+            {loading ? "Loading..." : "Connect Facebook"}
           </Button>
         </div>
       </div>

@@ -54,17 +54,17 @@ async def create_checkout_session(
 
     tenant = await _get_tenant(tenant_id, db)
     if tenant is None:
-        raise ValueError("Tenant tidak ditemukan")
+        raise ValueError("Tenant not found")
 
     if plan not in PLAN_PRICES:
-        raise ValueError(f"Plan tidak valid: {plan}")
+        raise ValueError(f"Invalid plan: {plan}")
 
     # Blok hanya kalau plan sama DAN tidak ada pending downgrade yang perlu dibatalkan
     if plan == tenant.plan and not tenant.pending_plan:
-        raise ValueError("Plan yang dipilih sama dengan plan aktif")
+        raise ValueError("Selected plan is the same as current plan")
     # Juga blok kalau plan sama dengan pending (downgrade yang sama sudah dijadwalkan)
     if plan == tenant.pending_plan:
-        raise ValueError("Downgrade ke plan ini sudah dijadwalkan")
+        raise ValueError("Downgrade to this plan is already scheduled")
 
     # Sudah punya subscription aktif → modifikasi langsung, tidak perlu Checkout
     if tenant.stripe_subscription_id:
@@ -144,7 +144,7 @@ async def _modify_subscription(tenant: Tenant, new_plan: str, db: AsyncSession) 
     else:
         # Downgrade baru: jadwalkan di akhir periode berjalan
         if not period_end_ts:
-            raise ValueError("Tidak dapat membaca periode berlangganan dari Stripe")
+            raise ValueError("Cannot read subscription period from Stripe")
         stripe.Subscription.modify(
             tenant.stripe_subscription_id,
             items=[{"id": item_id, "price": PLAN_PRICES[new_plan]}],
@@ -175,7 +175,7 @@ async def handle_stripe_webhook(
         )
     except stripe.SignatureVerificationError:
         logger.warning("Stripe webhook signature invalid")
-        raise ValueError("Signature tidak valid")
+        raise ValueError("Invalid signature")
 
     event_type = event["type"]
     raw = event["data"]["object"]

@@ -28,7 +28,7 @@ export default function FacebookCallback() {
     const error = searchParams.get("error");
     if (error) {
       setStep("error");
-      setErrorMessage("Authorization dibatalkan atau gagal.");
+      setErrorMessage("Authorization cancelled or failed.");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function FacebookCallback() {
     const data = searchParams.get("data");
     if (!data) {
       setStep("error");
-      setErrorMessage("Data tidak ditemukan.");
+      setErrorMessage("Data not found.");
       return;
     }
 
@@ -47,11 +47,11 @@ export default function FacebookCallback() {
         setStep("select");
       } else {
         setStep("error");
-        setErrorMessage("Tidak ada Facebook Page yang ditemukan.");
+        setErrorMessage("No Facebook Pages found.");
       }
     } catch {
       setStep("error");
-      setErrorMessage("Gagal memproses data.");
+      setErrorMessage("Failed to process data.");
     }
   }, [searchParams]);
 
@@ -77,7 +77,7 @@ export default function FacebookCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-            <p className="text-slate-600">Memproses authorization...</p>
+            <p className="text-slate-600">Processing authorization...</p>
           </div>
         </div>
       </AppLayout>
@@ -90,10 +90,10 @@ export default function FacebookCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 text-4xl text-red-500">✕</div>
-            <h2 className="mb-2 text-lg font-semibold text-slate-900">Gagal</h2>
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Failed</h2>
             <p className="text-slate-600">{errorMessage || oauthError}</p>
             <Button className="mt-4" onClick={() => navigate("/settings")} variant="outline">
-              Kembali ke Settings
+              Back to Settings
             </Button>
           </div>
         </div>
@@ -105,9 +105,9 @@ export default function FacebookCallback() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-xl p-6">
-          <h1 className="mb-4 text-xl font-semibold text-slate-900">Pilih Facebook Page</h1>
+          <h1 className="mb-4 text-xl font-semibold text-slate-900">Select Facebook Page</h1>
           <p className="mb-6 text-sm text-slate-500">
-            Pilih Page yang ingin dihubungkan ke sistem Omnichannel.
+            Select the Page you want to connect to the system.
           </p>
 
           <div className="space-y-3">
@@ -140,10 +140,10 @@ export default function FacebookCallback() {
 
           <div className="mt-6 flex gap-3">
             <Button onClick={handleConnect} disabled={!selectedPageId || loading}>
-              {loading ? "Menghubungkan..." : "Hubungkan Page"}
+              {loading ? "Connecting..." : "Connect Page"}
             </Button>
             <Button variant="outline" onClick={() => navigate("/settings")}>
-              Batal
+              Cancel
             </Button>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function FacebookCallback() {
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
-            <p className="text-slate-600">Menghubungkan Page...</p>
+            <p className="text-slate-600">Connecting Page...</p>
           </div>
         </div>
       </AppLayout>
@@ -169,8 +169,8 @@ export default function FacebookCallback() {
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <div className="mb-4 text-4xl text-green-500">✓</div>
-          <h2 className="mb-2 text-lg font-semibold text-slate-900">Berhasil!</h2>
-          <p className="text-slate-600">Facebook Page berhasil dihubungkan.</p>
+          <h2 className="mb-2 text-lg font-semibold text-slate-900">Success!</h2>
+          <p className="text-slate-600">Facebook Page connected successfully.</p>
         </div>
       </div>
     </AppLayout>

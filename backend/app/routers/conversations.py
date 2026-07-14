@@ -50,7 +50,7 @@ async def list_threads(
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db_session),
 ):
-    """Return one thread entry per session. Customer dapat muncul >1x jika punya beberapa sesi."""
+    """Return one thread entry per session. A customer may appear more than once if they have multiple sessions."""
     tenant_id: str = request.state.tenant_id
     tid = uuid.UUID(tenant_id)
 
@@ -159,7 +159,7 @@ async def toggle_takeover(
     )
     conv = result.scalar_one_or_none()
     if conv is None:
-        raise HTTPException(status_code=404, detail="Conversation tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Conversation not found.")
 
     conv.is_human_takeover = body.is_human_takeover
     if not body.is_human_takeover:
